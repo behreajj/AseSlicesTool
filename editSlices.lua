@@ -702,6 +702,10 @@ dlg:button {
             return
         end
 
+        -- Should this raise an alert warning like copy and delete do, and
+        -- point out in the second line of text that names should not be
+        -- treated as unique identifiers?
+
         local rangeSlices <const> = range.slices
         local lenRangeSlices <const> = #rangeSlices
         if lenRangeSlices < 1 then
