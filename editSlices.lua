@@ -1076,7 +1076,17 @@ dlg:button {
         local origColor <const> = args.origColor --[[@as Color]]
         local destColor <const> = args.destColor --[[@as Color]]
 
-        if origColor.alpha <= 0 or destColor.alpha <= 0 then return end
+        local aOrig <const> = math.min(math.max(origColor.alpha, 0), 255)
+        local aDest <const> = math.min(math.max(destColor.alpha, 0), 255)
+
+        if aOrig <= 0 or aDest <= 0 then
+            app.tool = oldTool
+            app.alert {
+                title = "Error",
+                text = "Colors may not have zero alpha."
+            }
+            return
+        end
 
         ---@type Slice[]
         local sortedSlices <const> = {}
@@ -1091,37 +1101,73 @@ dlg:button {
             and 1.0 / (lenRangeSlices - 1.0) or 0.0
         local jOff <const> = lenRangeSlices > 1 and 0.0 or 0.5
 
-        local hOrig <const> = origColor.hslHue % 360.0
         local sOrig <const> = math.min(math.max(origColor.hslSaturation, 0.0), 1.0)
         local lOrig <const> = math.min(math.max(origColor.hslLightness, 0.0), 1.0)
-        local aOrig <const> = math.min(math.max(origColor.alpha, 0), 255)
 
-        local hDest <const> = destColor.hslHue % 360.0
         local sDest <const> = math.min(math.max(destColor.hslSaturation, 0.0), 1.0)
         local lDest <const> = math.min(math.max(destColor.hslLightness, 0.0), 1.0)
-        local aDest <const> = math.min(math.max(destColor.alpha, 0), 255)
 
-        app.transaction("Slice Color", function()
-            local j = 0
-            while j < lenRangeSlices do
-                local t <const> = j * jScl + jOff
-                local u <const> = 1.0 - t
+        local useRgbLerp <const> = (lOrig <= 0.0 or lOrig >= 1.0)
+            or (lDest <= 0.0 or lDest >= 1.0)
+            or sOrig <= 0.0
+            or sDest <= 0.0
 
-                local hTrg <const> = (u * hOrig + t * hDest) % 360.0
-                local sTrg <const> = u * sOrig + t * sDest
-                local lTrg <const> = u * lOrig + t * lDest
-                local aTrg <const> = round(u * aOrig + t * aDest)
+        if useRgbLerp then
+            local rOrig <const> = math.min(math.max(origColor.red, 0), 255)
+            local gOrig <const> = math.min(math.max(origColor.green, 0), 255)
+            local bOrig <const> = math.min(math.max(origColor.blue, 0), 255)
 
-                j = j + 1
-                local slice <const> = sortedSlices[j]
-                slice.color = Color {
-                    hue = hTrg,
-                    saturation = sTrg,
-                    lightness = lTrg,
-                    alpha = aTrg
-                }
-            end
-        end)
+            local rDest <const> = math.min(math.max(destColor.red, 0), 255)
+            local gDest <const> = math.min(math.max(destColor.green, 0), 255)
+            local bDest <const> = math.min(math.max(destColor.blue, 0), 255)
+
+            app.transaction("Slice Color RGB", function()
+                local j = 0
+                while j < lenRangeSlices do
+                    local t <const> = j * jScl + jOff
+                    local u <const> = 1.0 - t
+
+                    local rTrg <const> = round(u * rOrig + t * rDest)
+                    local gTrg <const> = round(u * gOrig + t * gDest)
+                    local bTrg <const> = round(u * bOrig + t * bDest)
+                    local aTrg <const> = round(u * aOrig + t * aDest)
+
+                    j = j + 1
+                    local slice <const> = sortedSlices[j]
+                    slice.color = Color {
+                        red = rTrg,
+                        green = gTrg,
+                        blue = bTrg,
+                        alpha = aTrg
+                    }
+                end
+            end)
+        else
+            local hOrig <const> = origColor.hslHue % 360.0
+            local hDest <const> = destColor.hslHue % 360.0
+
+            app.transaction("Slice Color HSL", function()
+                local j = 0
+                while j < lenRangeSlices do
+                    local t <const> = j * jScl + jOff
+                    local u <const> = 1.0 - t
+
+                    local hTrg <const> = (u * hOrig + t * hDest) % 360.0
+                    local sTrg <const> = u * sOrig + t * sDest
+                    local lTrg <const> = u * lOrig + t * lDest
+                    local aTrg <const> = round(u * aOrig + t * aDest)
+
+                    j = j + 1
+                    local slice <const> = sortedSlices[j]
+                    slice.color = Color {
+                        hue = hTrg,
+                        saturation = sTrg,
+                        lightness = lTrg,
+                        alpha = aTrg
+                    }
+                end
+            end)
+        end
 
         app.tool = oldTool
         app.refresh()
