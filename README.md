@@ -4,7 +4,9 @@
 
 This is a tool to facilitate editing [9-slices](https://en.wikipedia.org/wiki/9-slice_scaling) within the [Aseprite](https://www.aseprite.org/) pixel art editor.
 
-**The Aseprite slice feature has been buggy for a long time. In general, I discourage using slices; however, some people rely on them. Test this script on a sample sprite first. Backup any complex projects before including slices and/or using this script.**
+**The Aseprite slice feature has been buggy for a long time. In general, I discourage using slices. However, some people rely on them. Test this script on a sample sprite first. Backup any complex projects before including slices and/or using this script.**
+
+If you are creating a custom [theme](https://aseprite.org/docs/extensions/themes/), and work with the slices that link `theme.xml` and `sheet.png`, beware of using this script's features.
 
 This script was created with Aseprite version 1.3.5 on Windows 10. In the screen shot above, the theme is default dark with 100% UI scaling and 200% screen scaling. Due to the size of the dialog, a theme with 100% scaling is recommended.
 
