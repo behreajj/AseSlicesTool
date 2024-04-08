@@ -423,9 +423,10 @@ dlg:button {
                     trgSlice.color = trgColor
 
                     local trgName = "Slice (Copy)"
-                    if srcSlice.name then
-                        if #srcSlice.name > 1 then
-                            trgName = srcSlice.name .. " (Copy)"
+                    local srcName <const> = srcSlice.name
+                    if srcName then
+                        if #srcName > 0 then
+                            trgName = srcName .. " (Copy)"
                         end
                     end
                     trgSlice.name = trgName
