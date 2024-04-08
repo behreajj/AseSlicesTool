@@ -1,4 +1,3 @@
--- TODO: Duplicate slice feature?
 -- TODO: Expand slice size?
 
 ---@param x number
@@ -268,6 +267,174 @@ dlg:button {
 dlg:newrow { always = false }
 
 dlg:button {
+    id = "copyButton",
+    label = "Edit:",
+    text = "COP&Y",
+    focus = false,
+    onclick = function()
+        local useColorInvert <const> = true
+
+        local sprite <const> = app.sprite
+        if not sprite then return end
+
+        local oldTool <const> = app.tool.id
+        app.tool = "slice"
+
+        local range <const> = app.range
+        if range.sprite ~= sprite then
+            app.tool = oldTool
+            return
+        end
+
+        local response <const> = app.alert {
+            title = "Warning",
+            text = {
+                "Are you sure you want to copy these slices?",
+                "Custom data and properties will NOT be copied."
+            },
+            buttons = { "&YES", "&NO" }
+        }
+        if response == 2 then
+            app.tool = oldTool
+            return
+        end
+
+        local slices <const> = range.slices
+        local lenSlices <const> = #slices
+        if lenSlices < 1 then
+            app.tool = oldTool
+            app.alert {
+                title = "Error",
+                text = "No slices were selected."
+            }
+            return
+        end
+
+        ---@type Slice[]
+        local slicesToDupe <const> = {}
+        local i = 0
+        while i < lenSlices do
+            i = i + 1
+            slicesToDupe[i] = slices[i]
+        end
+
+        table.sort(slicesToDupe, tlComparator)
+
+        local abs <const> = math.abs
+        local min <const> = math.min
+        local max <const> = math.max
+
+        local defaultColor = Color {
+            r = 255,
+            g = 255,
+            b = 255,
+            a = 255
+        }
+        local appPrefs <const> = app.preferences
+        if appPrefs then
+            local slicePrefs <const> = appPrefs.slices
+            if slicePrefs then
+                local prefsColor <const> = slicePrefs.default_color --[[@as Color]]
+                if prefsColor then
+                    if prefsColor.alpha > 0 then
+                        defaultColor = Color {
+                            r = min(max(prefsColor.red, 0), 255),
+                            g = min(max(prefsColor.green, 0), 255),
+                            b = min(max(prefsColor.blue, 0), 255),
+                            a = min(max(prefsColor.alpha, 0), 255)
+                        }
+                    end
+                end
+            end
+        end
+
+        ---@type Slice[]
+        local duplicates <const> = {}
+
+        -- TODO: Wrap in a transaction.
+        local j = 0
+        while j < lenSlices do
+            j = j + 1
+            local srcSlice <const> = slicesToDupe[j]
+            local srcBounds <const> = srcSlice.bounds
+            if srcBounds then
+                local xBounds <const> = srcBounds.x
+                local yBounds <const> = srcBounds.y
+                local wBounds <const> = max(1, abs(srcBounds.width))
+                local hBounds <const> = max(1, abs(srcBounds.height))
+                local trgBounds <const> = Rectangle(
+                    xBounds, yBounds, wBounds, hBounds)
+
+                local trgSlice <const> = sprite:newSlice(trgBounds)
+                duplicates[#duplicates + 1] = trgSlice
+
+                local srcCenter <const> = srcSlice.center
+                if srcCenter and srcCenter ~= nil then
+                    local xCenter <const> = srcCenter.x
+                    local yCenter <const> = srcCenter.y
+                    local wCenter <const> = max(1, abs(srcCenter.width))
+                    local hCenter <const> = max(1, abs(srcCenter.height))
+                    trgSlice.center = Rectangle(xCenter, yCenter,
+                        wCenter, hCenter)
+                end
+
+                local trgColor = Color {
+                    r = defaultColor.red,
+                    g = defaultColor.green,
+                    b = defaultColor.blue,
+                    a = defaultColor.alpha
+                }
+                local srcColor <const> = srcSlice.color
+                if srcColor then
+                    if srcColor.alpha > 0 then
+                        local rSrc <const> = min(max(srcColor.red, 0), 255)
+                        local gSrc <const> = min(max(srcColor.green, 0), 255)
+                        local bSrc <const> = min(max(srcColor.blue, 0), 255)
+                        local aSrc <const> = min(max(srcColor.alpha, 0), 255)
+
+                        local rTrg = rSrc
+                        local gTrg = gSrc
+                        local bTrg = bSrc
+                        local aTrg <const> = aSrc
+
+                        if useColorInvert then
+                            rTrg = 255 - rTrg
+                            gTrg = 255 - gTrg
+                            bTrg = 255 - bTrg
+                        end
+
+                        trgColor = Color {
+                            r = rTrg,
+                            g = gTrg,
+                            b = bTrg,
+                            a = aTrg
+                        }
+                    end
+                end
+                trgSlice.color = trgColor
+
+                local trgName = "Slice (Copy)"
+                if srcSlice.name then
+                    if #srcSlice.name > 1 then
+                        trgName = srcSlice.name .. " (Copy)"
+                    end
+                end
+                trgSlice.name = trgName
+
+                local srcPivot <const> = srcSlice.pivot
+                if srcPivot and srcPivot ~= nil then
+                    trgSlice.pivot = Point(srcPivot.x, srcPivot.y)
+                end
+            end
+        end
+
+        range.slices = duplicates
+        app.tool = oldTool
+        app.refresh()
+    end
+}
+
+dlg:button {
     id = "deleteButton",
     text = "D&ELETE",
     focus = false,
@@ -359,12 +526,31 @@ dlg:button {
             app.transaction("New Slice From Mask", function()
                 local slice <const> = sprite:newSlice(
                     Rectangle(x, y, w, h))
+
+                local trgColor = Color {
+                    r = 255,
+                    g = 255,
+                    b = 255,
+                    a = 255
+                }
                 local appPrefs <const> = app.preferences
-                local slicePrefs <const> = appPrefs.slices
-                local defaultColor <const> = slicePrefs.default_color --[[@as Color]]
-                if defaultColor then
-                    slice.color = defaultColor
+                if appPrefs then
+                    local slicePrefs <const> = appPrefs.slices
+                    if slicePrefs then
+                        local prefsColor <const> = slicePrefs.default_color --[[@as Color]]
+                        if prefsColor then
+                            if prefsColor.alpha > 0 then
+                                trgColor = Color {
+                                    r = math.min(math.max(prefsColor.red, 0), 255),
+                                    g = math.min(math.max(prefsColor.green, 0), 255),
+                                    b = math.min(math.max(prefsColor.blue, 0), 255),
+                                    a = math.min(math.max(prefsColor.alpha, 0), 255)
+                                }
+                            end
+                        end
+                    end
                 end
+                slice.color = trgColor
 
                 local range <const> = app.range
                 if range.sprite == sprite then
