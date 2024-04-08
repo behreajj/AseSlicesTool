@@ -351,82 +351,83 @@ dlg:button {
         ---@type Slice[]
         local duplicates <const> = {}
 
-        -- TODO: Wrap in a transaction.
-        local j = 0
-        while j < lenSlices do
-            j = j + 1
-            local srcSlice <const> = slicesToDupe[j]
-            local srcBounds <const> = srcSlice.bounds
-            if srcBounds then
-                local xBounds <const> = srcBounds.x
-                local yBounds <const> = srcBounds.y
-                local wBounds <const> = max(1, abs(srcBounds.width))
-                local hBounds <const> = max(1, abs(srcBounds.height))
-                local trgBounds <const> = Rectangle(
-                    xBounds, yBounds, wBounds, hBounds)
+        app.transaction("Copy Slices", function()
+            local j = 0
+            while j < lenSlices do
+                j = j + 1
+                local srcSlice <const> = slicesToDupe[j]
+                local srcBounds <const> = srcSlice.bounds
+                if srcBounds then
+                    local xBounds <const> = srcBounds.x
+                    local yBounds <const> = srcBounds.y
+                    local wBounds <const> = max(1, abs(srcBounds.width))
+                    local hBounds <const> = max(1, abs(srcBounds.height))
+                    local trgBounds <const> = Rectangle(
+                        xBounds, yBounds, wBounds, hBounds)
 
-                local trgSlice <const> = sprite:newSlice(trgBounds)
-                duplicates[#duplicates + 1] = trgSlice
+                    local trgSlice <const> = sprite:newSlice(trgBounds)
+                    duplicates[#duplicates + 1] = trgSlice
 
-                local srcCenter <const> = srcSlice.center
-                if srcCenter and srcCenter ~= nil then
-                    local xCenter <const> = srcCenter.x
-                    local yCenter <const> = srcCenter.y
-                    local wCenter <const> = max(1, abs(srcCenter.width))
-                    local hCenter <const> = max(1, abs(srcCenter.height))
-                    trgSlice.center = Rectangle(xCenter, yCenter,
-                        wCenter, hCenter)
-                end
+                    local srcCenter <const> = srcSlice.center
+                    if srcCenter and srcCenter ~= nil then
+                        local xCenter <const> = srcCenter.x
+                        local yCenter <const> = srcCenter.y
+                        local wCenter <const> = max(1, abs(srcCenter.width))
+                        local hCenter <const> = max(1, abs(srcCenter.height))
+                        trgSlice.center = Rectangle(xCenter, yCenter,
+                            wCenter, hCenter)
+                    end
 
-                local trgColor = Color {
-                    r = defaultColor.red,
-                    g = defaultColor.green,
-                    b = defaultColor.blue,
-                    a = defaultColor.alpha
-                }
-                local srcColor <const> = srcSlice.color
-                if srcColor then
-                    if srcColor.alpha > 0 then
-                        local rSrc <const> = min(max(srcColor.red, 0), 255)
-                        local gSrc <const> = min(max(srcColor.green, 0), 255)
-                        local bSrc <const> = min(max(srcColor.blue, 0), 255)
-                        local aSrc <const> = min(max(srcColor.alpha, 0), 255)
+                    local trgColor = Color {
+                        r = defaultColor.red,
+                        g = defaultColor.green,
+                        b = defaultColor.blue,
+                        a = defaultColor.alpha
+                    }
+                    local srcColor <const> = srcSlice.color
+                    if srcColor then
+                        if srcColor.alpha > 0 then
+                            local rSrc <const> = min(max(srcColor.red, 0), 255)
+                            local gSrc <const> = min(max(srcColor.green, 0), 255)
+                            local bSrc <const> = min(max(srcColor.blue, 0), 255)
+                            local aSrc <const> = min(max(srcColor.alpha, 0), 255)
 
-                        local rTrg = rSrc
-                        local gTrg = gSrc
-                        local bTrg = bSrc
-                        local aTrg <const> = aSrc
+                            local rTrg = rSrc
+                            local gTrg = gSrc
+                            local bTrg = bSrc
+                            local aTrg <const> = aSrc
 
-                        if useColorInvert then
-                            rTrg = 255 - rTrg
-                            gTrg = 255 - gTrg
-                            bTrg = 255 - bTrg
+                            if useColorInvert then
+                                rTrg = 255 - rTrg
+                                gTrg = 255 - gTrg
+                                bTrg = 255 - bTrg
+                            end
+
+                            trgColor = Color {
+                                r = rTrg,
+                                g = gTrg,
+                                b = bTrg,
+                                a = aTrg
+                            }
                         end
-
-                        trgColor = Color {
-                            r = rTrg,
-                            g = gTrg,
-                            b = bTrg,
-                            a = aTrg
-                        }
                     end
-                end
-                trgSlice.color = trgColor
+                    trgSlice.color = trgColor
 
-                local trgName = "Slice (Copy)"
-                if srcSlice.name then
-                    if #srcSlice.name > 1 then
-                        trgName = srcSlice.name .. " (Copy)"
+                    local trgName = "Slice (Copy)"
+                    if srcSlice.name then
+                        if #srcSlice.name > 1 then
+                            trgName = srcSlice.name .. " (Copy)"
+                        end
                     end
-                end
-                trgSlice.name = trgName
+                    trgSlice.name = trgName
 
-                local srcPivot <const> = srcSlice.pivot
-                if srcPivot and srcPivot ~= nil then
-                    trgSlice.pivot = Point(srcPivot.x, srcPivot.y)
+                    local srcPivot <const> = srcSlice.pivot
+                    if srcPivot and srcPivot ~= nil then
+                        trgSlice.pivot = Point(srcPivot.x, srcPivot.y)
+                    end
                 end
             end
-        end
+        end)
 
         range.slices = duplicates
         app.tool = oldTool
