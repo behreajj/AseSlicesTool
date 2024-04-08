@@ -534,34 +534,76 @@ dlg:button {
             local w <const> = math.max(1, math.abs(maskBounds.width))
             local h <const> = math.max(1, math.abs(maskBounds.height))
 
-            app.transaction("New Slice From Mask", function()
-                local slice <const> = sprite:newSlice(
-                    Rectangle(x, y, w, h))
+            local args <const> = dlg.data
+            local inset <const> = args.insetAmount --[[@as integer]]
+            local pivotCombo <const> = args.pivotCombo --[[@as string]]
+            local newName <const> = args.nameEntry --[[@as string]]
 
-                local trgColor = Color {
-                    r = 255,
-                    g = 255,
-                    b = 255,
-                    a = 255
-                }
-                local appPrefs <const> = app.preferences
-                if appPrefs then
-                    local slicePrefs <const> = appPrefs.slices
-                    if slicePrefs then
-                        local prefsColor <const> = slicePrefs.default_color --[[@as Color]]
-                        if prefsColor then
-                            if prefsColor.alpha > 0 then
-                                trgColor = Color {
-                                    r = math.min(math.max(prefsColor.red, 0), 255),
-                                    g = math.min(math.max(prefsColor.green, 0), 255),
-                                    b = math.min(math.max(prefsColor.blue, 0), 255),
-                                    a = math.min(math.max(prefsColor.alpha, 0), 255)
-                                }
-                            end
+            local newNameVrf = "Slice"
+            if newName and #newName > 0 then
+                newNameVrf = newName
+            end
+
+            local xtlInset <const> = inset
+            local ytlInset <const> = inset
+            local xbrInset <const> = (w - 1) - inset
+            local ybrInset <const> = (h - 1) - inset
+
+            local trgColor = Color {
+                r = 255,
+                g = 255,
+                b = 255,
+                a = 255
+            }
+            local appPrefs <const> = app.preferences
+            if appPrefs then
+                local slicePrefs <const> = appPrefs.slices
+                if slicePrefs then
+                    local prefsColor <const> = slicePrefs.default_color --[[@as Color]]
+                    if prefsColor then
+                        if prefsColor.alpha > 0 then
+                            trgColor = Color {
+                                r = math.min(math.max(prefsColor.red, 0), 255),
+                                g = math.min(math.max(prefsColor.green, 0), 255),
+                                b = math.min(math.max(prefsColor.blue, 0), 255),
+                                a = math.min(math.max(prefsColor.alpha, 0), 255)
+                            }
                         end
                     end
                 end
+            end
+
+            app.transaction("New Slice From Mask", function()
+                local slice <const> = sprite:newSlice(
+                    Rectangle(x, y, w, h))
                 slice.color = trgColor
+                slice.name = newNameVrf
+
+                if xtlInset < xbrInset and ytlInset < ybrInset then
+                    local wInset <const> = 1 + xbrInset - xtlInset
+                    local hInset <const> = 1 + ybrInset - ytlInset
+                    slice.center = Rectangle(xtlInset, ytlInset, wInset, hInset)
+                end
+
+                if pivotCombo == "TOP_LEFT" then
+                    slice.pivot = Point(0, 0)
+                elseif pivotCombo == "TOP_CENTER" then
+                    slice.pivot = Point(w // 2, 0)
+                elseif pivotCombo == "TOP_RIGHT" then
+                    slice.pivot = Point(w - 1, 0)
+                elseif pivotCombo == "CENTER_LEFT" then
+                    slice.pivot = Point(0, h // 2)
+                elseif pivotCombo == "CENTER" then
+                    slice.pivot = Point(w // 2, h // 2)
+                elseif pivotCombo == "CENTER_RIGHT" then
+                    slice.pivot = Point(w - 1, h // 2)
+                elseif pivotCombo == "BOTTOM_LEFT" then
+                    slice.pivot = Point(0, h - 1)
+                elseif pivotCombo == "BOTTOM_CENTER" then
+                    slice.pivot = Point(w // 2, h - 1)
+                elseif pivotCombo == "BOTTOM_RIGHT" then
+                    slice.pivot = Point(w - 1, h - 1)
+                end
 
                 local range <const> = app.range
                 if range.sprite == sprite then
