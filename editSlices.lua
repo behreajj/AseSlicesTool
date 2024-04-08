@@ -65,14 +65,23 @@ local function translateSlices(dx, dy)
     local yGrOff = 0
     local xGrScl = 1
     local yGrScl = 1
-    local docPrefs <const> = app.preferences.document(sprite)
-    local useSnap <const> = docPrefs.grid.snap --[[@as boolean]]
-    if useSnap then
-        local grid <const> = sprite.gridBounds
-        xGrOff = grid.x
-        yGrOff = grid.y
-        xGrScl = math.max(1, math.abs(grid.width))
-        yGrScl = math.max(1, math.abs(grid.height))
+
+    local appPrefs <const> = app.preferences
+    if appPrefs then
+        local docPrefs <const> = appPrefs.document(sprite)
+        if docPrefs then
+            local gridPrefs <const> = docPrefs.grid
+            if gridPrefs then
+                local useSnap <const> = gridPrefs.snap --[[@as boolean]]
+                if useSnap then
+                    local grid <const> = sprite.gridBounds
+                    xGrOff = grid.x
+                    yGrOff = grid.y
+                    xGrScl = math.max(1, math.abs(grid.width))
+                    yGrScl = math.max(1, math.abs(grid.height))
+                end
+            end
+        end
     end
 
     local abs <const> = math.abs
