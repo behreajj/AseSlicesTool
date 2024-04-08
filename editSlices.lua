@@ -127,7 +127,7 @@ dlg:button {
     visible = true,
     onclick = function()
         -- Aseprite UI already contains function for this, but slice context
-        -- toolbar may not be visible.
+        -- bar may not be visible.
 
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -243,7 +243,7 @@ dlg:button {
     visible = true,
     onclick = function()
         -- Aseprite UI already contains function for this, but slice context
-        -- toolbar may not be visible.
+        -- bar may not be visible.
 
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -1019,16 +1019,16 @@ dlg:button {
         local args <const> = dlg.data
 
         local origColor <const> = args.origColor --[[@as Color]]
-        local rOrig <const> = origColor.red
-        local gOrig <const> = origColor.green
-        local bOrig <const> = origColor.blue
-        local aOrig <const> = origColor.alpha
+        local rOrig <const> = math.min(math.max(origColor.red, 0), 255)
+        local gOrig <const> = math.min(math.max(origColor.green, 0), 255)
+        local bOrig <const> = math.min(math.max(origColor.blue, 0), 255)
+        local aOrig <const> = math.min(math.max(origColor.alpha, 0), 255)
 
         local destColor <const> = args.destColor --[[@as Color]]
-        local rDest <const> = destColor.red
-        local gDest <const> = destColor.green
-        local bDest <const> = destColor.blue
-        local aDest <const> = destColor.alpha
+        local rDest <const> = math.min(math.max(destColor.red, 0), 255)
+        local gDest <const> = math.min(math.max(destColor.green, 0), 255)
+        local bDest <const> = math.min(math.max(destColor.blue, 0), 255)
+        local aDest <const> = math.min(math.max(destColor.alpha, 0), 255)
 
         dlg:modify {
             id = "origColor",
