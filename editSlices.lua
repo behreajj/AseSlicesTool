@@ -1,3 +1,6 @@
+-- TODO: Duplicate slice feature?
+-- TODO: Expand slice size?
+
 ---@param x number
 ---@return integer
 local function round(x)
@@ -130,6 +133,10 @@ dlg:button {
         local sprite <const> = app.sprite
         if not sprite then return end
 
+        local spriteSlices <const> = sprite.slices
+        local lenSpriteSlices <const> = #spriteSlices
+        if lenSpriteSlices < 1 then return end
+
         local oldTool <const> = app.tool.id
         app.tool = "slice"
 
@@ -138,9 +145,6 @@ dlg:button {
             app.tool = oldTool
             return
         end
-
-        local spriteSlices <const> = sprite.slices
-        local lenSpriteSlices <const> = #spriteSlices
 
         ---@type Slice[]
         local assignSlices <const> = {}
@@ -152,6 +156,82 @@ dlg:button {
         end
 
         range.slices = assignSlices
+        app.tool = oldTool
+        app.refresh()
+    end
+}
+
+dlg:button {
+    id = "selectMaskButton",
+    text = "&MASK",
+    focus = false,
+    visible = true,
+    onclick = function()
+        local sprite <const> = app.sprite
+        if not sprite then return end
+
+        local spriteSlices <const> = sprite.slices
+        local lenSpriteSlices <const> = #spriteSlices
+        if lenSpriteSlices < 1 then return end
+
+        local oldTool <const> = app.tool.id
+        app.tool = "slice"
+
+        local range <const> = app.range
+        if range.sprite ~= sprite then
+            app.tool = oldTool
+            return
+        end
+
+        ---@type Slice[]
+        local containedSlices <const> = {}
+
+        -- This prevents errors when mask is in a transform preview state.
+        app.command.InvertMask()
+        app.command.InvertMask()
+
+        -- If no mask, then select everything.
+        local mask <const> = sprite.selection
+        if mask == nil or mask.isEmpty then
+            local h = 0
+            while h < lenSpriteSlices do
+                h = h + 1
+                containedSlices[h] = spriteSlices[h]
+            end
+        else
+            local abs <const> = math.abs
+            local max <const> = math.max
+
+            local i = 0
+            while i < lenSpriteSlices do
+                i = i + 1
+                local slice <const> = spriteSlices[i]
+                local sliceBounds <const> = slice.bounds
+                if sliceBounds then
+                    local xtlSlice <const> = sliceBounds.x
+                    local ytlSlice <const> = sliceBounds.y
+                    local wSlice <const> = max(1, abs(sliceBounds.width))
+                    local hSlice <const> = max(1, abs(sliceBounds.height))
+                    local areaSlice <const> = wSlice * hSlice
+
+                    local isContained = true
+                    local j = 0
+                    while isContained and j < areaSlice do
+                        local xSample <const> = xtlSlice + j % wSlice
+                        local ySample <const> = ytlSlice + j // wSlice
+                        isContained = isContained
+                            and mask:contains(Point(xSample, ySample))
+                        j = j + 1
+                    end
+
+                    if isContained then
+                        containedSlices[#containedSlices + 1] = slice
+                    end
+                end
+            end
+        end
+
+        range.slices = containedSlices
         app.tool = oldTool
         app.refresh()
     end
@@ -173,7 +253,10 @@ dlg:button {
         app.tool = "slice"
 
         local range <const> = app.range
-        if range.sprite ~= sprite then return end
+        if range.sprite ~= sprite then
+            app.tool = oldTool
+            return
+        end
 
         range.slices = {}
 
@@ -258,6 +341,7 @@ dlg:button {
         local sprite <const> = app.sprite
         if not sprite then return end
 
+        -- This prevents errors when mask is in a transform preview state.
         app.command.InvertMask()
         app.command.InvertMask()
 
