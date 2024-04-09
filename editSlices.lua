@@ -1,5 +1,25 @@
 -- TODO: Expand slice size?
 
+---@param orig number
+---@param dest number
+---@param t number
+---@param range number
+---@return number
+local function lerpAngleCcw(orig, dest, t, range)
+    local rangeVerif <const> = range or 360.0
+    local o <const> = orig % rangeVerif
+    local d <const> = dest % rangeVerif
+    local diff <const> = d - o
+    if diff == 0.0 then return o end
+
+    local u <const> = 1.0 - t
+    if o > d then
+        return (u * o + t * (d + rangeVerif)) % rangeVerif
+    else
+        return u * o + t * d
+    end
+end
+
 ---@param x number
 ---@return integer
 local function round(x)
@@ -1199,8 +1219,8 @@ dlg:button {
                 end
             end)
         else
-            local hOrig <const> = origColor.hslHue % 360.0
-            local hDest <const> = destColor.hslHue % 360.0
+            local hOrig <const> = origColor.hslHue
+            local hDest <const> = destColor.hslHue
 
             app.transaction("Slice Color HSL", function()
                 local j = 0
@@ -1208,7 +1228,7 @@ dlg:button {
                     local t <const> = j * jScl + jOff
                     local u <const> = 1.0 - t
 
-                    local hTrg <const> = (u * hOrig + t * hDest) % 360.0
+                    local hTrg <const> = lerpAngleCcw(hOrig, hDest, t, 360.0)
                     local sTrg <const> = u * sOrig + t * sDest
                     local lTrg <const> = u * lOrig + t * lDest
                     local aTrg <const> = round(u * aOrig + t * aDest)
