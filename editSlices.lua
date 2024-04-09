@@ -756,7 +756,8 @@ dlg:newrow { always = false }
 
 dlg:number {
     id = "width",
-    label = "Pixels:",
+    -- label = "Pixels:",
+    label = "Size:",
     text = string.format("%d", wSet),
     decimals = 0,
     visible = true
@@ -897,92 +898,6 @@ dlg:button {
 
 dlg:newrow { always = false }
 
-dlg:entry {
-    id = "nameEntry",
-    label = "Name:",
-    focus = false,
-    text = "Slice"
-}
-
-dlg:button {
-    id = "renameButton",
-    text = "&RENAME",
-    focus = false,
-    onclick = function()
-        local sprite <const> = app.sprite
-        if not sprite then return end
-
-        local oldTool <const> = app.tool.id
-        app.tool = "slice"
-
-        local range <const> = app.range
-        if range.sprite ~= sprite then
-            app.tool = oldTool
-            return
-        end
-
-        -- Should this raise an alert warning like copy and delete do, and
-        -- point out in the second line of text that names should not be
-        -- treated as unique identifiers?
-
-        local rangeSlices <const> = range.slices
-        local lenRangeSlices <const> = #rangeSlices
-        if lenRangeSlices < 1 then
-            app.tool = oldTool
-            app.alert {
-                title = "Error",
-                text = "No slices were selected."
-            }
-            return
-        end
-
-        local args <const> = dlg.data
-        local newName <const> = args.nameEntry --[[@as string]]
-
-        local newNameVrf = "Slice"
-        if newName and #newName > 0 then
-            newNameVrf = newName
-        end
-
-        if lenRangeSlices == 1 then
-            app.transaction("Rename Slice", function()
-                local activeSlice <const> = rangeSlices[1]
-                activeSlice.name = newNameVrf
-            end)
-            app.tool = oldTool
-            app.refresh()
-            return
-        end
-
-        ---@type Slice[]
-        local sortedSlices <const> = {}
-        local i = 0
-        while i < lenRangeSlices do
-            i = i + 1
-            sortedSlices[i] = rangeSlices[i]
-        end
-
-        table.sort(sortedSlices, tlComparator)
-
-        local format <const> = "%s %d"
-        local strfmt <const> = string.format
-
-        app.transaction("Rename Slices", function()
-            local j = 0
-            while j < lenRangeSlices do
-                j = j + 1
-                local slice <const> = sortedSlices[j]
-                slice.name = strfmt(format, newNameVrf, j)
-            end
-        end)
-
-        app.tool = oldTool
-        app.refresh()
-    end
-}
-
-dlg:newrow { always = false }
-
 dlg:slider {
     id = "insetAmount",
     label = "Amount:",
@@ -991,6 +906,21 @@ dlg:slider {
     value = 0,
     focus = false
 }
+
+dlg:newrow { always = false }
+
+dlg:combobox {
+    id = "pivotCombo",
+    label = "Preset:",
+    option = "TOP_LEFT",
+    options = {
+        "TOP_LEFT", "TOP_CENTER", "TOP_RIGHT",
+        "CENTER_LEFT", "CENTER", "CENTER_RIGHT",
+        "BOTTOM_LEFT", "BOTTOM_CENTER", "BOTTOM_RIGHT"
+    }
+}
+
+dlg:newrow { always = false }
 
 dlg:button {
     id = "insetButton",
@@ -1055,19 +985,6 @@ dlg:button {
         app.tool = oldTool
         app.refresh()
     end
-}
-
-dlg:newrow { always = false }
-
-dlg:combobox {
-    id = "pivotCombo",
-    label = "Preset:",
-    option = "TOP_LEFT",
-    options = {
-        "TOP_LEFT", "TOP_CENTER", "TOP_RIGHT",
-        "CENTER_LEFT", "CENTER", "CENTER_RIGHT",
-        "BOTTOM_LEFT", "BOTTOM_CENTER", "BOTTOM_RIGHT"
-    }
 }
 
 dlg:button {
@@ -1230,6 +1147,15 @@ dlg:button {
 
 dlg:newrow { always = false }
 
+dlg:entry {
+    id = "nameEntry",
+    label = "Name:",
+    focus = false,
+    text = "Slice"
+}
+
+dlg:newrow { always = false }
+
 dlg:color {
     id = "origColor",
     label = "Mix:",
@@ -1244,34 +1170,78 @@ dlg:color {
 dlg:newrow { always = false }
 
 dlg:button {
-    id = "swapColorsButton",
-    text = "SWA&P",
+    id = "renameButton",
+    text = "&RENAME",
     focus = false,
     onclick = function()
+        local sprite <const> = app.sprite
+        if not sprite then return end
+
+        local oldTool <const> = app.tool.id
+        app.tool = "slice"
+
+        local range <const> = app.range
+        if range.sprite ~= sprite then
+            app.tool = oldTool
+            return
+        end
+
+        -- Should this raise an alert warning like copy and delete do, and
+        -- point out in the second line of text that names should not be
+        -- treated as unique identifiers?
+
+        local rangeSlices <const> = range.slices
+        local lenRangeSlices <const> = #rangeSlices
+        if lenRangeSlices < 1 then
+            app.tool = oldTool
+            app.alert {
+                title = "Error",
+                text = "No slices were selected."
+            }
+            return
+        end
+
         local args <const> = dlg.data
+        local newName <const> = args.nameEntry --[[@as string]]
 
-        local origColor <const> = args.origColor --[[@as Color]]
-        local rOrig <const> = math.min(math.max(origColor.red, 0), 255)
-        local gOrig <const> = math.min(math.max(origColor.green, 0), 255)
-        local bOrig <const> = math.min(math.max(origColor.blue, 0), 255)
-        local aOrig <const> = math.min(math.max(origColor.alpha, 0), 255)
+        local newNameVrf = "Slice"
+        if newName and #newName > 0 then
+            newNameVrf = newName
+        end
 
-        local destColor <const> = args.destColor --[[@as Color]]
-        local rDest <const> = math.min(math.max(destColor.red, 0), 255)
-        local gDest <const> = math.min(math.max(destColor.green, 0), 255)
-        local bDest <const> = math.min(math.max(destColor.blue, 0), 255)
-        local aDest <const> = math.min(math.max(destColor.alpha, 0), 255)
+        if lenRangeSlices == 1 then
+            app.transaction("Rename Slice", function()
+                local activeSlice <const> = rangeSlices[1]
+                activeSlice.name = newNameVrf
+            end)
+            app.tool = oldTool
+            app.refresh()
+            return
+        end
 
-        dlg:modify {
-            id = "origColor",
-            color = Color { r = rDest, g = gDest, b = bDest, a = aDest }
-        }
+        ---@type Slice[]
+        local sortedSlices <const> = {}
+        local i = 0
+        while i < lenRangeSlices do
+            i = i + 1
+            sortedSlices[i] = rangeSlices[i]
+        end
 
-        dlg:modify {
-            id = "destColor",
-            color = Color { r = rOrig, g = gOrig, b = bOrig, a = aOrig }
-        }
+        table.sort(sortedSlices, tlComparator)
 
+        local format <const> = "%s %d"
+        local strfmt <const> = string.format
+
+        app.transaction("Rename Slices", function()
+            local j = 0
+            while j < lenRangeSlices do
+                j = j + 1
+                local slice <const> = sortedSlices[j]
+                slice.name = strfmt(format, newNameVrf, j)
+            end
+        end)
+
+        app.tool = oldTool
         app.refresh()
     end
 }
@@ -1402,6 +1372,40 @@ dlg:button {
         end
 
         app.tool = oldTool
+        app.refresh()
+    end
+}
+
+dlg:button {
+    id = "swapColorsButton",
+    text = "SWA&P",
+    focus = false,
+    visible = true,
+    onclick = function()
+        local args <const> = dlg.data
+
+        local origColor <const> = args.origColor --[[@as Color]]
+        local rOrig <const> = math.min(math.max(origColor.red, 0), 255)
+        local gOrig <const> = math.min(math.max(origColor.green, 0), 255)
+        local bOrig <const> = math.min(math.max(origColor.blue, 0), 255)
+        local aOrig <const> = math.min(math.max(origColor.alpha, 0), 255)
+
+        local destColor <const> = args.destColor --[[@as Color]]
+        local rDest <const> = math.min(math.max(destColor.red, 0), 255)
+        local gDest <const> = math.min(math.max(destColor.green, 0), 255)
+        local bDest <const> = math.min(math.max(destColor.blue, 0), 255)
+        local aDest <const> = math.min(math.max(destColor.alpha, 0), 255)
+
+        dlg:modify {
+            id = "origColor",
+            color = Color { r = rDest, g = gDest, b = bDest, a = aDest }
+        }
+
+        dlg:modify {
+            id = "destColor",
+            color = Color { r = rOrig, g = gOrig, b = bOrig, a = aOrig }
+        }
+
         app.refresh()
     end
 }
