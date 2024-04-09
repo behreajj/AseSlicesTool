@@ -24,4 +24,31 @@ If an error message in Aseprite's console appears, check if the script folder is
 
 A hot key can be assigned to the script by going to `Edit > Keyboard Shortcuts`. The search input box in the top left of the shortcuts dialog can be used to locate the script by its file name.
 
-Once open, holding down the `Alt` or `Option` key and pressing the underlined letter on a button will activate that button via keypress. For example, `Alt+C` will cancel the dialog. See screen capture above.
+Once open, holding down the `Alt` or `Option` key and pressing the underlined letter on a button will activate that button via keypress. For example, `Alt+C` will cancel the dialog. See the screen capture above.
+
+The features of this dialog, per each button, are:
+- **All**: Selects all the sprite's slices.
+- **Mask**: Gets the slices entirely contained by the selection mask.
+- **None**: Deselects all the sprite's slices.
+- **Copy**: Partially copies the selected slices, avoiding custom user data and properties. Inverts the slices' colors. Warns before execution.
+- **Delete**: Deletes the selected slices. Warns before execution.
+- **From**: Creates a slice from the bounds of a selection mask.
+- **To**: Converts the selected slices to a selection mask.
+- **W**: Nudges the selected slices up toward y = 0.
+- **A**: Nudges the selected slices left toward x = 0.
+- **S**: Nudges the selected slices down toward y = height - 1.
+- **D**: Nudges the selected slices right toward x = width - 1.
+- **Resize**: Sets slices' bounds to the given size, maintaining their pivots. Insets are scaled by ratio of new size to old.
+- **Inset**: Sets slices' insets to a pixel increment from its bounds.
+- **Pivot**: Sets slices' pivots according to 9 presets (top left, bottom right, center, etc.).
+- **Rename**: Sets a slice's name to the provided string. If multiple slices are selected, appends a number after the string.
+- **Color**: Recolors the selected slices per a mix between two given colors. Color mixing is done in HSL unless one of the colors is gray. When HSL is used, the hue is mixed counter clockwise.
+- **Swap**: Swaps the origin and destination color.
+- **Cancel**: Closes the dialog.
+
+Both resize and nudge try to avoid creating a slice that is outside the sprite's bounds.
+
+All nudge buttons try to match the slice's top-left corner to the slice grid when snap to grid is enabled.
+
+Any order-sensitive functions, like rename and color mix, sort slices according to the y coordinate, followed by the x, followed by the slice name.
+
