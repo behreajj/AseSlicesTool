@@ -1232,13 +1232,12 @@ dlg:newrow { always = false }
 
 dlg:color {
     id = "origColor",
-    label = "Orig:",
+    label = "Mix:",
     color = Color { r = 254, g = 91, b = 89, a = 255 }
 }
 
 dlg:color {
     id = "destColor",
-    label = "Dest:",
     color = Color { r = 106, g = 205, b = 91, a = 255 }
 }
 
