@@ -1,5 +1,3 @@
--- TODO: Expand slice size?
-
 ---@param orig number
 ---@param dest number
 ---@param t number
@@ -107,7 +105,7 @@ local function translateSlices(dx, dy)
     local abs <const> = math.abs
     local max <const> = math.max
 
-    app.transaction(string.format("Move Slices (%d, %d)", dx, dy), function()
+    app.transaction(string.format("Nudge Slices (%d, %d)", dx, dy), function()
         local i = 0
         while i < lenSlices do
             i = i + 1
@@ -144,6 +142,22 @@ local function translateSlices(dx, dy)
 
     app.tool = oldTool
     app.refresh()
+end
+
+local wSet = 24
+local hSet = 24
+if app.preferences then
+    local newFilePrefs <const> = app.preferences.new_file
+    if newFilePrefs then
+        local wNewSprite <const> = newFilePrefs.width --[[@as integer]]
+        local hNewSprite <const> = newFilePrefs.height --[[@as integer]]
+        if wNewSprite and (wNewSprite // 10) > 0 then
+            wSet = wNewSprite // 10
+        end
+        if hNewSprite and (hNewSprite // 10) > 0 then
+            hSet = hNewSprite // 10
+        end
+    end
 end
 
 local dlg <const> = Dialog { title = "Edit Slices" }
@@ -735,6 +749,149 @@ dlg:button {
     focus = false,
     onclick = function()
         translateSlices(1, 0)
+    end
+}
+
+dlg:newrow { always = false }
+
+dlg:number {
+    id = "width",
+    label = "Pixels:",
+    text = string.format("%d", wSet),
+    decimals = 0,
+    visible = true
+}
+
+dlg:number {
+    id = "height",
+    text = string.format("%d", hSet),
+    decimals = 0,
+    visible = true
+}
+
+dlg:newrow { always = false }
+
+dlg:button {
+    id = "resizeButton",
+    text = "RESI&ZE",
+    focus = false,
+    onclick = function()
+        local sprite <const> = app.sprite
+        if not sprite then return end
+
+        local oldTool <const> = app.tool.id
+        app.tool = "slice"
+
+        local range <const> = app.range
+        if range.sprite ~= sprite then
+            app.tool = oldTool
+            return
+        end
+
+        local slices <const> = range.slices
+        local lenSlices <const> = #slices
+        if lenSlices < 1 then
+            app.tool = oldTool
+            app.alert {
+                title = "Error",
+                text = "No slices were selected."
+            }
+            return
+        end
+
+        local args <const> = dlg.data
+        local width <const> = args.width --[[@as integer]]
+        local height <const> = args.height --[[@as integer]]
+
+        local wSprite <const> = sprite.width
+        local hSprite <const> = sprite.height
+        local wVerif <const> = math.max(2, math.abs(width))
+        local hVerif <const> = math.max(2, math.abs(height))
+
+        local abs <const> = math.abs
+        local max <const> = math.max
+
+        local trsName <const> = string.format(
+            "Scale Slices (%d, %d)",
+            wVerif, hVerif)
+        app.transaction(trsName, function()
+            local i = 0
+            while i < lenSlices do
+                i = i + 1
+                local slice <const> = slices[i]
+                local srcBounds <const> = slice.bounds
+                if srcBounds then
+                    local xtlSrc <const> = srcBounds.x
+                    local ytlSrc <const> = srcBounds.y
+                    local wSrc <const> = max(2, abs(srcBounds.width))
+                    local hSrc <const> = max(2, abs(srcBounds.height))
+
+                    -- In case you want to do percentage based scaling later.
+                    local wTrg = wVerif
+                    local hTrg = hVerif
+
+                    local xPivSrc = 0
+                    local yPivSrc = 0
+                    local srcPivot <const> = slice.pivot
+                    if srcPivot then
+                        xPivSrc = srcPivot.x
+                        yPivSrc = srcPivot.y
+                    end
+
+                    local xRatio <const> = (wTrg - 1.0) / (wSrc - 1.0)
+                    local yRatio <const> = (hTrg - 1.0) / (hSrc - 1.0)
+
+                    local xPivTrgf <const> = xPivSrc * xRatio
+                    local yPivTrgf <const> = yPivSrc * yRatio
+
+                    local xPivGlobal <const> = xtlSrc + xPivSrc
+                    local yPivGlobal <const> = ytlSrc + yPivSrc
+
+                    local xtlTrg <const> = round(xPivGlobal - xPivTrgf)
+                    local ytlTrg <const> = round(yPivGlobal - yPivTrgf)
+                    local xbrTrg <const> = xtlTrg + wTrg - 1
+                    local ybrTrg <const> = ytlTrg + hTrg - 1
+
+                    if ytlTrg >= 0 and ybrTrg < hSprite
+                        and xtlTrg >= 0 and xbrTrg < wSprite then
+                        slice.bounds = Rectangle(xtlTrg, ytlTrg, wTrg, hTrg)
+
+                        if srcPivot then
+                            local xPivTrg <const> = xPivGlobal - xtlTrg
+                            local yPivTrg <const> = yPivGlobal - ytlTrg
+                            slice.pivot = Point(xPivTrg, yPivTrg)
+                        end
+
+                        local srcInset <const> = slice.center
+                        if srcInset then
+                            local xtlInsetSrc <const> = srcInset.x
+                            local ytlInsetSrc <const> = srcInset.y
+                            local wInsetSrc <const> = max(2, abs(srcInset.width))
+                            local hInsetSrc <const> = max(2, abs(srcInset.height))
+
+                            local xbrInsetSrc <const> = xtlInsetSrc + wInsetSrc - 1
+                            local ybrInsetSrc <const> = ytlInsetSrc + hInsetSrc - 1
+
+                            local xtlInsetTrg = round(xtlInsetSrc * xRatio)
+                            local ytlInsetTrg = round(ytlInsetSrc * yRatio)
+                            local xbrInsetTrg = round(xbrInsetSrc * xRatio)
+                            local ybrInsetTrg = round(ybrInsetSrc * yRatio)
+                            if xtlInsetTrg < xbrInsetTrg
+                                and ytlInsetTrg < ybrInsetTrg then
+                                local wInsetTrg <const> = 1 + xbrInsetTrg - xtlInsetTrg
+                                local hInsetTrg <const> = 1 + ybrInsetTrg - ytlInsetTrg
+                                slice.center = Rectangle(
+                                    xtlInsetTrg, ytlInsetTrg,
+                                    wInsetTrg, hInsetTrg)
+                            end -- End target inset is valid.
+                        end     -- End source inset exists.
+                    end         -- End target bounds is valid.
+                end             -- End source bounds exists.
+            end                 -- End loop.
+        end)
+
+        app.tool = oldTool
+        app.refresh()
     end
 }
 
