@@ -1,3 +1,13 @@
+-- TODO: Option to create a slice for each cel in a range at the active frame
+-- &FRAME, get layers from range if the range is not of type frame and is not
+-- empty, otherwise get all layers in hierarchy. Then change label to Convert
+-- and change names of &FROM and &TO to MAS&K and something else... maybe
+-- SLIC&E, then change E shortcut to T shortcut for DELE&TE.
+
+--[[Slices have an internal reference to the frame on which they were
+    created. This reference cannot be accessed via Lua script.
+]]
+
 ---@param orig number
 ---@param dest number
 ---@param t number
@@ -37,6 +47,7 @@ local function tlComparator(left, right)
     local aBounds <const> = left.bounds
     local bBounds <const> = right.bounds
     if aBounds and bBounds then
+        -- TODO: Might be nice to sort by tl + pivot, if pivot is set.
         local ay <const> = aBounds.y
         local by <const> = bBounds.y
         if ay == by then
@@ -333,7 +344,8 @@ dlg:button {
             title = "Warning",
             text = {
                 "Are you sure you want to copy these slices?",
-                "Custom data and properties will NOT be copied."
+                "Custom data and properties will NOT be copied.",
+                "A slice's frame cannot be copied."
             },
             buttons = { "&YES", "&NO" }
         }
@@ -390,6 +402,9 @@ dlg:button {
                 end
             end
         end
+
+        local oldActiveFrame <const> = app.frame
+        app.frame = 1
 
         ---@type Slice[]
         local duplicates <const> = {}
@@ -473,6 +488,7 @@ dlg:button {
             end
         end)
 
+        app.frame = oldActiveFrame
         range.slices = duplicates
         app.tool = oldTool
         app.refresh()
@@ -607,6 +623,9 @@ dlg:button {
                 end
             end
 
+            local oldActiveFrame <const> = app.frame
+            app.frame = 1
+
             app.transaction("New Slice From Mask", function()
                 local slice <const> = sprite:newSlice(
                     Rectangle(x, y, w, h))
@@ -645,6 +664,7 @@ dlg:button {
                 end
             end)
 
+            app.frame = oldActiveFrame
             app.tool = oldTool
         else
             app.alert {
