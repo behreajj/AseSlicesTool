@@ -1306,8 +1306,8 @@ dlg:button {
                         if srcInset then
                             local xtlInsetSrc <const> = srcInset.x
                             local ytlInsetSrc <const> = srcInset.y
-                            local wInsetSrc <const> = max(2, abs(srcInset.width))
-                            local hInsetSrc <const> = max(2, abs(srcInset.height))
+                            local wInsetSrc <const> = max(1, abs(srcInset.width))
+                            local hInsetSrc <const> = max(1, abs(srcInset.height))
 
                             local xbrInsetSrc <const> = xtlInsetSrc + wInsetSrc - 1
                             local ybrInsetSrc <const> = ytlInsetSrc + hInsetSrc - 1
