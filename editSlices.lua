@@ -124,7 +124,14 @@ end
 
 ---@param dx integer
 ---@param dy integer
-local function translateSlices(dx, dy)
+---@param moveBounds boolean
+---@param movePivot boolean
+---@param moveInset boolean
+---@param pivotCombo string
+local function translateSlices(
+    dx, dy,
+    moveBounds, movePivot, moveInset,
+    pivotCombo)
     local sprite <const> = app.sprite
     if not sprite then return end
 
@@ -178,40 +185,81 @@ local function translateSlices(dx, dy)
     local actFrObj <const> = app.frame
     app.frame = sprite.frames[1]
 
-    app.transaction(string.format("Nudge Slices (%d, %d)", dx, dy), function()
-        local i = 0
-        while i < lenSlices do
-            i = i + 1
-            local slice <const> = slices[i]
-            local bounds <const> = slice.bounds
-            if bounds then
-                local xSrc <const> = bounds.x
-                local ySrc <const> = bounds.y
+    if moveBounds then
+        local trsName <const> = string.format("Nudge Slices (%d, %d)", dx, dy)
+        app.transaction(trsName, function()
+            local i = 0
+            while i < lenSlices do
+                i = i + 1
+                local slice <const> = slices[i]
+                local bounds <const> = slice.bounds
+                if bounds then
+                    local xSrc <const> = bounds.x
+                    local ySrc <const> = bounds.y
 
-                local xTrg = xSrc + dx
-                if dxNonZero then
-                    local xGrid <const> = round((xSrc - xGrOff) / xGrScl)
-                    xTrg = xGrOff + (xGrid + dx) * xGrScl
-                end
+                    local xTrg = xSrc + dx
+                    if dxNonZero then
+                        local xGrid <const> = round((xSrc - xGrOff) / xGrScl)
+                        xTrg = xGrOff + (xGrid + dx) * xGrScl
+                    end
 
-                local yTrg = ySrc + dy
-                if dyNonZero then
-                    local yGrid <const> = round((ySrc - yGrOff) / yGrScl)
-                    yTrg = yGrOff + (yGrid + dy) * yGrScl
-                end
+                    local yTrg = ySrc + dy
+                    if dyNonZero then
+                        local yGrid <const> = round((ySrc - yGrOff) / yGrScl)
+                        yTrg = yGrOff + (yGrid + dy) * yGrScl
+                    end
 
-                local wTrg <const> = max(1, abs(bounds.width))
-                local hTrg <const> = max(1, abs(bounds.height))
-                local xBrTrg <const> = xTrg + wTrg - 1
-                local yBrTrg <const> = yTrg + hTrg - 1
+                    local wTrg <const> = max(1, abs(bounds.width))
+                    local hTrg <const> = max(1, abs(bounds.height))
+                    local xBrTrg <const> = xTrg + wTrg - 1
+                    local yBrTrg <const> = yTrg + hTrg - 1
 
-                if xTrg >= 0 and yTrg >= 0
-                    and xBrTrg < wSprite and yBrTrg < hSprite then
-                    slice.bounds = Rectangle(xTrg, yTrg, wTrg, hTrg)
+                    if xTrg >= 0 and yTrg >= 0
+                        and xBrTrg < wSprite and yBrTrg < hSprite then
+                        slice.bounds = Rectangle(xTrg, yTrg, wTrg, hTrg)
+                    end
                 end
             end
-        end
-    end)
+        end)
+    end
+
+    if movePivot then
+        local trsName <const> = string.format("Nudge Pivots (%d, %d)", dx, dy)
+        app.transaction(trsName, function()
+            local j = 0
+            while j < lenSlices do
+                j = j + 1
+                local slice <const> = slices[j]
+                local xPivot = 0
+                local yPivot = 0
+
+                local srcPivot <const> = slice.pivot
+                if srcPivot then
+                    xPivot = srcPivot.x
+                    yPivot = srcPivot.y
+                else
+                    local sliceBounds <const> = slice.bounds
+                    if sliceBounds then
+                        local wSlice <const> = sliceBounds.width
+                        local hSlice <const> = sliceBounds.height
+                        local pivPt <const> = pivotFromPreset(
+                            pivotCombo, wSlice, hSlice)
+                        xPivot = pivPt.x
+                        yPivot = pivPt.y
+                    end
+                end
+
+                local xTrgPiv <const> = xPivot + dx
+                local yTrgPiv <const> = yPivot + dy
+                slice.pivot = Point(xTrgPiv, yTrgPiv)
+            end
+        end)
+    end
+
+    if moveInset then
+        -- TODO: Implement.
+        local trsName <const> = string.format("Nudge Insets (%d, %d)", dx, dy)
+    end
 
     app.frame = actFrObj
     app.tool = oldTool
@@ -222,6 +270,7 @@ local wSet = 24
 local hSet = 24
 local pivotSet = "TOP_LEFT"
 local nudgeStep <const> = 1
+local displayMoveChecks <const> = true
 if app.preferences then
     local newFilePrefs <const> = app.preferences.new_file
     if newFilePrefs then
@@ -1007,7 +1056,13 @@ dlg:button {
     label = "Nudge:",
     focus = false,
     onclick = function()
-        translateSlices(0, -nudgeStep)
+        local args <const> = dlg.data
+        local moveBounds <const> = args.moveBounds --[[@as boolean]]
+        local movePivot <const> = args.movePivot --[[@as boolean]]
+        local moveInset <const> = args.moveInset --[[@as boolean]]
+        local pivotCombo <const> = args.pivotCombo --[[@as string]]
+        translateSlices(0, -nudgeStep,
+            moveBounds, movePivot, moveInset, pivotCombo)
     end
 }
 
@@ -1016,7 +1071,13 @@ dlg:button {
     text = "&A",
     focus = false,
     onclick = function()
-        translateSlices(-nudgeStep, 0)
+        local args <const> = dlg.data
+        local moveBounds <const> = args.moveBounds --[[@as boolean]]
+        local movePivot <const> = args.movePivot --[[@as boolean]]
+        local moveInset <const> = args.moveInset --[[@as boolean]]
+        local pivotCombo <const> = args.pivotCombo --[[@as string]]
+        translateSlices(-nudgeStep, 0,
+            moveBounds, movePivot, moveInset, pivotCombo)
     end
 }
 
@@ -1025,7 +1086,13 @@ dlg:button {
     text = "&S",
     focus = false,
     onclick = function()
-        translateSlices(0, nudgeStep)
+        local args <const> = dlg.data
+        local moveBounds <const> = args.moveBounds --[[@as boolean]]
+        local movePivot <const> = args.movePivot --[[@as boolean]]
+        local moveInset <const> = args.moveInset --[[@as boolean]]
+        local pivotCombo <const> = args.pivotCombo --[[@as string]]
+        translateSlices(0, nudgeStep,
+            moveBounds, movePivot, moveInset, pivotCombo)
     end
 }
 
@@ -1034,8 +1101,40 @@ dlg:button {
     text = "&D",
     focus = false,
     onclick = function()
-        translateSlices(nudgeStep, 0)
+        local args <const> = dlg.data
+        local moveBounds <const> = args.moveBounds --[[@as boolean]]
+        local movePivot <const> = args.movePivot --[[@as boolean]]
+        local moveInset <const> = args.moveInset --[[@as boolean]]
+        local pivotCombo <const> = args.pivotCombo --[[@as string]]
+        translateSlices(nudgeStep, 0,
+            moveBounds, movePivot, moveInset, pivotCombo)
     end
+}
+
+dlg:newrow { always = false }
+
+dlg:check {
+    id = "moveBounds",
+    selected = true,
+    text = "Bounds",
+    focus = false,
+    visible = displayMoveChecks
+}
+
+dlg:check {
+    id = "movePivot",
+    selected = false,
+    text = "Pivot",
+    focus = false,
+    visible = displayMoveChecks
+}
+
+dlg:check {
+    id = "moveInset",
+    selected = false,
+    text = "Inset",
+    focus = false,
+    visible = displayMoveChecks
 }
 
 dlg:newrow { always = false }
