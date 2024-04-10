@@ -4,11 +4,11 @@
 
 This is a tool to facilitate editing [9-slices](https://en.wikipedia.org/wiki/9-slice_scaling) within the [Aseprite](https://www.aseprite.org/) pixel art editor.
 
-**The Aseprite slice feature has been buggy for a long time. In general, I discourage using slices. However, some people rely on them. Test this script on a sample sprite first. Backup any complex projects before including slices and/or using this script.**
+**The Aseprite slice feature has been buggy for a long time. In general, I discourage using slices. However, some people employ them regardless. Test this script on a sample sprite first. Backup any complex projects before including slices and/or using this script.**
 
 If you are creating a custom [theme](https://aseprite.org/docs/extensions/themes/), and work with the slices that link `theme.xml` and `sheet.png`, beware of using this script's features.
 
-If you are creating a sprite with multiple frames, and need slices to record frame references, this script will not be able to help you. A slice's frame data appears in a JSON export, but cannot be accessed via Lua. New slices created by this script are created on frame 1. For more discussion, see these forum threads: [1](https://community.aseprite.org/t/how-do-i-figure-out-which-frame-a-slice-is-on), [2](https://community.aseprite.org/t/problem-with-slices-when-adding-removing-frames), [3](https://community.aseprite.org/t/slices-are-buggy-when-edited-at-different-frames), [4](https://community.aseprite.org/t/is-there-a-way-to-slice-single-frames).
+If you are creating a sprite with many frames, and need slices to record frame references, this script will not help you. A slice's frame data appears in a JSON export, but cannot be accessed via Lua. New slices created by this script are created on frame 1. A `fromFrame` and `toFrame` are assigned to a new slice's `properties`. For more, see these forum threads: [1](https://community.aseprite.org/t/how-do-i-figure-out-which-frame-a-slice-is-on), [2](https://community.aseprite.org/t/problem-with-slices-when-adding-removing-frames), [3](https://community.aseprite.org/t/slices-are-buggy-when-edited-at-different-frames), [4](https://community.aseprite.org/t/is-there-a-way-to-slice-single-frames).
 
 This script was created with Aseprite version 1.3.5 on Windows 10. In the screen shot above, the theme is default dark with 100% UI scaling and 200% screen scaling. Due to the size of the dialog, a theme with 100% scaling is recommended.
 

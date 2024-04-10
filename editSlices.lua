@@ -2,6 +2,23 @@
     created. This reference cannot be accessed via Lua script.
 ]]
 
+-- TODO: Checkboxes under nudge buttons for Bounds, Pivot and Inset, so that
+-- you can nudge pivots and insets with keys independent of bounds.
+
+local pivotOptions <const> = {
+    "TOP_LEFT",
+    "TOP_CENTER",
+    "TOP_RIGHT",
+
+    "CENTER_LEFT",
+    "CENTER",
+    "CENTER_RIGHT",
+
+    "BOTTOM_LEFT",
+    "BOTTOM_CENTER",
+    "BOTTOM_RIGHT",
+}
+
 ---@param layer Layer
 ---@param array Layer[]
 ---@return Layer[]
@@ -203,6 +220,7 @@ end
 
 local wSet = 24
 local hSet = 24
+local pivotSet = "TOP_LEFT"
 if app.preferences then
     local newFilePrefs <const> = app.preferences.new_file
     if newFilePrefs then
@@ -214,6 +232,12 @@ if app.preferences then
         if hNewSprite and (hNewSprite // 10) > 0 then
             hSet = hNewSprite // 10
         end
+    end
+
+    local maskPrefs <const> = app.preferences.selection
+    if maskPrefs then
+        local maskIndex <const> = maskPrefs.pivot_position --[[@as integer]]
+        pivotSet = pivotOptions[1 + maskIndex]
     end
 end
 
@@ -1176,12 +1200,8 @@ dlg:newrow { always = false }
 dlg:combobox {
     id = "pivotCombo",
     label = "Preset:",
-    option = "TOP_LEFT",
-    options = {
-        "TOP_LEFT", "TOP_CENTER", "TOP_RIGHT",
-        "CENTER_LEFT", "CENTER", "CENTER_RIGHT",
-        "BOTTOM_LEFT", "BOTTOM_CENTER", "BOTTOM_RIGHT"
-    }
+    option = pivotSet,
+    options = pivotOptions
 }
 
 dlg:newrow { always = false }
