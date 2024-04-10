@@ -2,9 +2,6 @@
     created. This reference cannot be accessed via Lua script.
 ]]
 
--- TODO: Checkboxes under nudge buttons for Bounds, Pivot and Inset, so that
--- you can nudge pivots and insets with keys independent of bounds.
-
 local pivotOptions <const> = {
     "TOP_LEFT",
     "TOP_CENTER",
@@ -128,10 +125,11 @@ end
 ---@param movePivot boolean
 ---@param moveInset boolean
 ---@param pivotCombo string
+---@param insetAmount integer
 local function translateSlices(
     dx, dy,
     moveBounds, movePivot, moveInset,
-    pivotCombo)
+    pivotCombo, insetAmount)
     local sprite <const> = app.sprite
     if not sprite then return end
 
@@ -257,6 +255,7 @@ local function translateSlices(
     end
 
     if moveInset then
+        local insetAmt2 <const> = insetAmount + insetAmount
         local trsName <const> = string.format("Nudge Insets (%d, %d)", dx, dy)
         app.transaction(trsName, function()
             local k = 0
@@ -268,13 +267,10 @@ local function translateSlices(
                     local wBounds <const> = max(1, abs(bounds.width))
                     local hBounds <const> = max(1, abs(bounds.height))
 
-                    -- TODO: The default case where no src inset already exists,
-                    -- this needs to respond to the inset amount, otherwise there
-                    -- is no point do to the clamping.
-                    local xtlSrcInset = 0
-                    local ytlSrcInset = 0
-                    local wSrcInset = wBounds
-                    local hSrcInset = hBounds
+                    local xtlSrcInset = insetAmount
+                    local ytlSrcInset = insetAmount
+                    local wSrcInset = wBounds - insetAmt2
+                    local hSrcInset = hBounds - insetAmt2
 
                     local srcInset <const> = slice.center
                     if srcInset then
@@ -1108,8 +1104,10 @@ dlg:button {
         local movePivot <const> = args.movePivot --[[@as boolean]]
         local moveInset <const> = args.moveInset --[[@as boolean]]
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
+        local insetAmount <const> = args.insetAmount --[[@as integer]]
         translateSlices(0, -nudgeStep,
-            moveBounds, movePivot, moveInset, pivotCombo)
+            moveBounds, movePivot, moveInset,
+            pivotCombo, insetAmount)
     end
 }
 
@@ -1123,8 +1121,10 @@ dlg:button {
         local movePivot <const> = args.movePivot --[[@as boolean]]
         local moveInset <const> = args.moveInset --[[@as boolean]]
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
+        local insetAmount <const> = args.insetAmount --[[@as integer]]
         translateSlices(-nudgeStep, 0,
-            moveBounds, movePivot, moveInset, pivotCombo)
+            moveBounds, movePivot, moveInset,
+            pivotCombo, insetAmount)
     end
 }
 
@@ -1138,8 +1138,10 @@ dlg:button {
         local movePivot <const> = args.movePivot --[[@as boolean]]
         local moveInset <const> = args.moveInset --[[@as boolean]]
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
+        local insetAmount <const> = args.insetAmount --[[@as integer]]
         translateSlices(0, nudgeStep,
-            moveBounds, movePivot, moveInset, pivotCombo)
+            moveBounds, movePivot, moveInset,
+            pivotCombo, insetAmount)
     end
 }
 
@@ -1153,8 +1155,10 @@ dlg:button {
         local movePivot <const> = args.movePivot --[[@as boolean]]
         local moveInset <const> = args.moveInset --[[@as boolean]]
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
+        local insetAmount <const> = args.insetAmount --[[@as integer]]
         translateSlices(nudgeStep, 0,
-            moveBounds, movePivot, moveInset, pivotCombo)
+            moveBounds, movePivot, moveInset,
+            pivotCombo, insetAmount)
     end
 }
 
