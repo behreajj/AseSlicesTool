@@ -867,6 +867,24 @@ dlg:button {
         local wSprite <const> = sprite.width
         local hSprite <const> = sprite.height
         local alphaIndex <const> = sprite.transparentColor
+        local colorMode <const> = sprite.colorMode
+
+        local bkgHex = 0
+        app.command.SwitchColors()
+        local bkgColor <const> = app.fgColor
+        if colorMode == ColorMode.GRAY then
+            local sr <const> = bkgColor.red
+            local sg <const> = bkgColor.green
+            local sb <const> = bkgColor.blue
+            local gray <const> = (sr * 2126 + sg * 7152 + sb * 722) // 10000
+            bkgHex = (bkgColor.alpha << 0x08) | gray
+        elseif colorMode == ColorMode.INDEXED then
+            bkgHex = bkgColor.index
+        elseif colorMode == ColorMode.RGB then
+            bkgHex = bkgColor.rgbaPixel
+        end
+        app.command.SwitchColors()
+
         local xtlInset <const> = inset
         local ytlInset <const> = inset
         local format <const> = "%s %d"
@@ -905,7 +923,10 @@ dlg:button {
                         -- Empty images will return zero size rectangle.
                         local celPos <const> = cel.position
                         local celImage <const> = cel.image
-                        local trimRect <const> = celImage:shrinkBounds(alphaIndex)
+                        local ref <const> = layer.isBackground
+                            and bkgHex
+                            or alphaIndex
+                        local trimRect <const> = celImage:shrinkBounds(ref)
                         xtlCel = celPos.x + trimRect.x
                         ytlCel = celPos.y + trimRect.y
                         wCel = trimRect.width
