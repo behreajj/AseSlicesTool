@@ -1,6 +1,3 @@
---TODO: Test to see what is in slice properties and whether you should set
--- anything there. Use writeProps from AsepriteAddons JSON.
-
 --[[Slices have an internal reference to the frame on which they were
     created. This reference cannot be accessed via Lua script.
 ]]
@@ -158,10 +155,11 @@ local function translateSlices(dx, dy)
         end
     end
 
-    app.frame = sprite.frames[1]
-
     local abs <const> = math.abs
     local max <const> = math.max
+
+    local actFrObj <const> = app.frame
+    app.frame = sprite.frames[1]
 
     app.transaction(string.format("Nudge Slices (%d, %d)", dx, dy), function()
         local i = 0
@@ -198,6 +196,7 @@ local function translateSlices(dx, dy)
         end
     end)
 
+    app.frame = actFrObj
     app.tool = oldTool
     app.refresh()
 end
@@ -246,6 +245,9 @@ dlg:button {
             return
         end
 
+        local actFrObj <const> = app.frame
+        app.frame = sprite.frames[1]
+
         ---@type Slice[]
         local assignSlices <const> = {}
         local i = 0
@@ -256,6 +258,7 @@ dlg:button {
         end
 
         range.slices = assignSlices
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
@@ -282,6 +285,9 @@ dlg:button {
             app.tool = oldTool
             return
         end
+
+        local actFrObj <const> = app.frame
+        app.frame = sprite.frames[1]
 
         ---@type Slice[]
         local containedSlices <const> = {}
@@ -332,6 +338,7 @@ dlg:button {
         end
 
         range.slices = containedSlices
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
@@ -352,6 +359,9 @@ dlg:button {
         local oldTool <const> = app.tool.id
         app.tool = "slice"
 
+        local actFrObj <const> = app.frame
+        app.frame = sprite.frames[1]
+
         local range <const> = app.range
         if range.sprite ~= sprite then
             app.tool = oldTool
@@ -359,6 +369,7 @@ dlg:button {
         end
 
         range.slices = {}
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
@@ -568,6 +579,9 @@ dlg:button {
             return
         end
 
+        local actFrObj <const> = app.frame
+        app.frame = sprite.frames[1]
+
         local slices <const> = range.slices
         local lenSlices <const> = #slices
         if lenSlices < 1 then
@@ -599,6 +613,7 @@ dlg:button {
             end
         end)
 
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
@@ -703,7 +718,6 @@ dlg:button {
 
         local oldTool <const> = app.tool.id
         app.tool = "slice"
-        app.frame = sprite.frames[1]
 
         local args <const> = dlg.data
         local inset <const> = args.insetAmount --[[@as integer]]
@@ -729,6 +743,8 @@ dlg:button {
         ---@type Slice[]
         local newSlices <const> = {}
         local lenNewSlices = 0
+
+        app.frame = sprite.frames[1]
 
         app.transaction("New Slices From Frame", function()
             local i = 0
@@ -910,6 +926,9 @@ dlg:button {
 
         local mask <const> = Selection()
 
+        local actFrObj <const> = app.frame
+        app.frame = sprite.frames[1]
+
         local i = 0
         while i < lenSlices do
             i = i + 1
@@ -928,6 +947,7 @@ dlg:button {
             sprite.selection = mask
         end)
 
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
@@ -1029,6 +1049,7 @@ dlg:button {
         local wVerif <const> = math.max(2, math.abs(width))
         local hVerif <const> = math.max(2, math.abs(height))
 
+        local actFrObj <const> = app.frame
         app.frame = sprite.frames[1]
 
         local abs <const> = math.abs
@@ -1113,6 +1134,7 @@ dlg:button {
             end                 -- End loop.
         end)
 
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
@@ -1175,8 +1197,9 @@ dlg:button {
         local args <const> = dlg.data
         local inset <const> = args.insetAmount --[[@as integer]]
 
+        local actFrObj <const> = app.frame
         app.frame = sprite.frames[1]
-        
+
         local abs <const> = math.abs
         local max <const> = math.max
 
@@ -1206,6 +1229,7 @@ dlg:button {
             end
         end)
 
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
@@ -1246,6 +1270,9 @@ dlg:button {
 
         local abs <const> = math.abs
         local max <const> = math.max
+
+        local actFrObj <const> = app.frame
+        app.frame = sprite.frames[1]
 
         if pivotCombo == "TOP_LEFT" then
             app.transaction("Slice Pivot Top Left", function()
@@ -1366,6 +1393,7 @@ dlg:button {
             end)
         end
 
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
@@ -1458,6 +1486,9 @@ dlg:button {
         local format <const> = "%s %d"
         local strfmt <const> = string.format
 
+        local actFrObj <const> = app.frame
+        app.frame = sprite.frames[1]
+
         app.transaction("Rename Slices", function()
             local j = 0
             while j < lenRangeSlices do
@@ -1467,6 +1498,7 @@ dlg:button {
             end
         end)
 
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
@@ -1540,6 +1572,9 @@ dlg:button {
             or sOrig <= 0.0
             or sDest <= 0.0
 
+        local actFrObj <const> = app.frame
+        app.frame = sprite.frames[1]
+
         if useRgbLerp then
             local rOrig <const> = math.min(math.max(origColor.red, 0), 255)
             local gOrig <const> = math.min(math.max(origColor.green, 0), 255)
@@ -1597,6 +1632,7 @@ dlg:button {
             end)
         end
 
+        app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
     end
