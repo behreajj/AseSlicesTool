@@ -291,8 +291,8 @@ local function translateSlices(
                         and xbrTrgInset >= 0 and xbrTrgInset < wBounds
                         and ybrTrgInset >= 0 and ybrTrgInset < hBounds
 
-                        and xtlTrgInset < xbrTrgInset
-                        and ytlTrgInset < ybrTrgInset then
+                        and xtlTrgInset <= xbrTrgInset
+                        and ytlTrgInset <= ybrTrgInset then
                         local wTrgInset <const> = 1 + xbrTrgInset - xtlTrgInset
                         local hTrgInset <const> = 1 + ybrTrgInset - ytlTrgInset
                         slice.center = Rectangle(
@@ -917,7 +917,7 @@ dlg:button {
 
                             local xbrInset <const> = (wSlice - 1) - inset
                             local ybrInset <const> = (hSlice - 1) - inset
-                            if xtlInset < xbrInset and ytlInset < ybrInset then
+                            if xtlInset <= xbrInset and ytlInset <= ybrInset then
                                 local wInset <const> = 1 + xbrInset - xtlInset
                                 local hInset <const> = 1 + ybrInset - ytlInset
                                 slice.center = Rectangle(
@@ -1005,7 +1005,7 @@ dlg:button {
                 slice.properties["fromFrame"] = actFrIdx - 1
                 slice.properties["toFrame"] = actFrIdx - 1
 
-                if xtlInset < xbrInset and ytlInset < ybrInset then
+                if xtlInset <= xbrInset and ytlInset <= ybrInset then
                     local wInset <const> = 1 + xbrInset - xtlInset
                     local hInset <const> = 1 + ybrInset - ytlInset
                     slice.center = Rectangle(
@@ -1316,8 +1316,8 @@ dlg:button {
                             local ytlInsetTrg = round(ytlInsetSrc * yRatio)
                             local xbrInsetTrg = round(xbrInsetSrc * xRatio)
                             local ybrInsetTrg = round(ybrInsetSrc * yRatio)
-                            if xtlInsetTrg < xbrInsetTrg
-                                and ytlInsetTrg < ybrInsetTrg then
+                            if xtlInsetTrg <= xbrInsetTrg
+                                and ytlInsetTrg <= ybrInsetTrg then
                                 local wInsetTrg <const> = 1 + xbrInsetTrg - xtlInsetTrg
                                 local hInsetTrg <const> = 1 + ybrInsetTrg - ytlInsetTrg
                                 slice.center = Rectangle(
@@ -1411,7 +1411,7 @@ dlg:button {
                     local xbrTrg <const> = xbrSrc - inset
                     local ybrTrg <const> = ybrSrc - inset
 
-                    if xtlTrg < xbrTrg and ytlTrg < ybrTrg then
+                    if xtlTrg <= xbrTrg and ytlTrg <= ybrTrg then
                         local wTrg <const> = 1 + xbrTrg - xtlTrg
                         local hTrg <const> = 1 + ybrTrg - ytlTrg
                         slice.center = Rectangle(xtlTrg, ytlTrg, wTrg, hTrg)
