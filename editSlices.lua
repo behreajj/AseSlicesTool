@@ -181,6 +181,7 @@ local function translateSlices(
 
     local abs <const> = math.abs
     local max <const> = math.max
+    local min <const> = math.min
 
     local actFrObj <const> = app.frame
     app.frame = sprite.frames[1]
@@ -230,35 +231,81 @@ local function translateSlices(
             while j < lenSlices do
                 j = j + 1
                 local slice <const> = slices[j]
-                local xPivot = 0
-                local yPivot = 0
+                local xSrcPiv = 0
+                local ySrcPiv = 0
 
                 local srcPivot <const> = slice.pivot
                 if srcPivot then
-                    xPivot = srcPivot.x
-                    yPivot = srcPivot.y
+                    xSrcPiv = srcPivot.x
+                    ySrcPiv = srcPivot.y
                 else
                     local sliceBounds <const> = slice.bounds
                     if sliceBounds then
                         local wSlice <const> = sliceBounds.width
                         local hSlice <const> = sliceBounds.height
-                        local pivPt <const> = pivotFromPreset(
+                        local pivPreset <const> = pivotFromPreset(
                             pivotCombo, wSlice, hSlice)
-                        xPivot = pivPt.x
-                        yPivot = pivPt.y
+                        xSrcPiv = pivPreset.x
+                        ySrcPiv = pivPreset.y
                     end
                 end
 
-                local xTrgPiv <const> = xPivot + dx
-                local yTrgPiv <const> = yPivot + dy
+                local xTrgPiv <const> = xSrcPiv + dx
+                local yTrgPiv <const> = ySrcPiv + dy
                 slice.pivot = Point(xTrgPiv, yTrgPiv)
             end
         end)
     end
 
     if moveInset then
-        -- TODO: Implement.
         local trsName <const> = string.format("Nudge Insets (%d, %d)", dx, dy)
+        app.transaction(trsName, function()
+            local k = 0
+            while k < lenSlices do
+                k = k + 1
+                local slice <const> = slices[k]
+                local bounds <const> = slice.bounds
+                if bounds then
+                    local xtlBounds <const> = bounds.x
+                    local ytlBounds <const> = bounds.y
+                    local wBounds <const> = max(1, abs(bounds.width))
+                    local hBounds <const> = max(1, abs(bounds.height))
+
+                    local xtlSrcInset = 0
+                    local ytlSrcInset = 0
+                    local wSrcInset = wBounds
+                    local hSrcInset = hBounds
+
+                    local srcInset <const> = slice.center
+                    if srcInset then
+                        xtlSrcInset = srcInset.x
+                        ytlSrcInset = srcInset.y
+                        wSrcInset = max(1, abs(srcInset.width))
+                        hSrcInset = max(1, abs(srcInset.height))
+                    end
+
+                    local xtlTrgInset <const> = xtlSrcInset + dx
+                    local ytlTrgInset <const> = ytlSrcInset + dy
+                    local xbrTrgInset <const> = xtlTrgInset + wSrcInset - 1
+                    local ybrTrgInset <const> = ytlTrgInset + hSrcInset - 1
+
+                    if xtlTrgInset >= 0 and xtlTrgInset < wBounds
+                        and ytlTrgInset >= 0 and ytlTrgInset < hBounds
+
+                        and xbrTrgInset >= 0 and xbrTrgInset < wBounds
+                        and ybrTrgInset >= 0 and ybrTrgInset < hBounds
+
+                        and xtlTrgInset < xbrTrgInset
+                        and ytlTrgInset < ybrTrgInset then
+                        local wTrgInset <const> = 1 + xbrTrgInset - xtlTrgInset
+                        local hTrgInset <const> = 1 + ybrTrgInset - ytlTrgInset
+                        slice.center = Rectangle(
+                            xtlTrgInset, ytlTrgInset,
+                            wTrgInset, hTrgInset)
+                    end
+                end
+            end
+        end)
     end
 
     app.frame = actFrObj
