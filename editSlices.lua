@@ -1263,8 +1263,8 @@ dlg:button {
                 if srcBounds then
                     local xtlSrc <const> = srcBounds.x
                     local ytlSrc <const> = srcBounds.y
-                    local wSrc <const> = max(5, abs(srcBounds.width))
-                    local hSrc <const> = max(5, abs(srcBounds.height))
+                    local wSrc <const> = max(1, abs(srcBounds.width))
+                    local hSrc <const> = max(1, abs(srcBounds.height))
 
                     -- In case you want to do percentage based scaling later.
                     local wTrg = wVerif
