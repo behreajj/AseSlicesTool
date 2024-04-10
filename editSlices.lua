@@ -866,12 +866,12 @@ dlg:button {
 
         local wSprite <const> = sprite.width
         local hSprite <const> = sprite.height
+        local alphaIndex <const> = sprite.transparentColor
         local xtlInset <const> = inset
         local ytlInset <const> = inset
         local format <const> = "%s %d"
 
         local strfmt <const> = string.format
-        local abs <const> = math.abs
         local max <const> = math.max
         local min <const> = math.min
 
@@ -888,15 +888,33 @@ dlg:button {
                 local layer <const> = chosenLayers[i]
                 local cel <const> = layer:cel(actFrIdx)
                 if cel then
-                    local celImage <const> = cel.image
-                    if not celImage:isEmpty() then
+                    local xtlCel = 0
+                    local ytlCel = 0
+                    local wCel = 0
+                    local hCel = 0
+
+                    if layer.isTilemap then
+                        -- Shrink bounds does not work with tile maps.
+                        local celBounds <const> = cel.bounds
+                        xtlCel = celBounds.x
+                        ytlCel = celBounds.y
+                        wCel = celBounds.width
+                        hCel = celBounds.height
+                    else
+                        -- Cel image may not be trimmed of alpha.
+                        -- Empty images will return zero size rectangle.
+                        local celPos <const> = cel.position
+                        local celImage <const> = cel.image
+                        local trimRect <const> = celImage:shrinkBounds(alphaIndex)
+                        xtlCel = celPos.x + trimRect.x
+                        ytlCel = celPos.y + trimRect.y
+                        wCel = trimRect.width
+                        hCel = trimRect.height
+                    end
+
+                    if wCel > 0 and hCel > 0 then
                         -- Cel may be out of bounds, so it must be intersected
                         -- with sprite canvas.
-                        local celBounds <const> = cel.bounds
-                        local xtlCel <const> = celBounds.x
-                        local ytlCel <const> = celBounds.y
-                        local wCel <const> = max(1, abs(celBounds.width))
-                        local hCel <const> = max(1, abs(celBounds.height))
                         local xbrCelCl <const> = min(wSprite - 1, xtlCel + wCel - 1)
                         local ybrCelCl <const> = min(hSprite - 1, ytlCel + hCel - 1)
                         local xtlCelCl <const> = max(0, xtlCel)
@@ -928,9 +946,9 @@ dlg:button {
                                     slice.center = Rectangle(
                                         xtlInset, ytlInset, wInset, hInset)
                                 end -- End set corners are valid.
-                            end     -- End slice size is greater than minimum.
+                            end     -- End slice size is gteq minimum.
                         end         -- End bounds corners are valid.
-                    end             -- End image is not empty.
+                    end             -- End cel valid size.
                 end                 -- End cel exists.
             end                     -- End cels loop.
         end)
