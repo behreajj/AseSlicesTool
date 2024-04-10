@@ -311,6 +311,9 @@ end
 
 local wSet = 24
 local hSet = 24
+-- When slices are too small, some problem prevents them from being resized.
+local wMin = 3
+local hMin = 3
 local pivotSet = "TOP_LEFT"
 local nudgeStep <const> = 1
 local displayMoveChecks <const> = true
@@ -950,76 +953,78 @@ dlg:button {
 
         local srcMask <const> = sprite.selection
         if srcMask and (not srcMask.isEmpty) then
-            local oldTool <const> = app.tool.id
-            app.tool = "slice"
-
             local maskBounds <const> = srcMask.bounds
             local x <const> = maskBounds.x
             local y <const> = maskBounds.y
             local w <const> = math.max(1, math.abs(maskBounds.width))
             local h <const> = math.max(1, math.abs(maskBounds.height))
 
-            local args <const> = dlg.data
-            local inset <const> = args.insetAmount --[[@as integer]]
-            local pivotCombo <const> = args.pivotCombo --[[@as string]]
-            local newName <const> = args.nameEntry --[[@as string]]
+            if w >= wMin and h >= hMin then
+                local oldTool <const> = app.tool.id
+                app.tool = "slice"
 
-            local newNameVrf = "Slice"
-            if newName and #newName > 0 then
-                newNameVrf = newName
-            end
+                local args <const> = dlg.data
+                local inset <const> = args.insetAmount --[[@as integer]]
+                local pivotCombo <const> = args.pivotCombo --[[@as string]]
+                local newName <const> = args.nameEntry --[[@as string]]
 
-            local xtlInset <const> = inset
-            local ytlInset <const> = inset
-            local xbrInset <const> = (w - 1) - inset
-            local ybrInset <const> = (h - 1) - inset
+                local newNameVrf = "Slice"
+                if newName and #newName > 0 then
+                    newNameVrf = newName
+                end
 
-            local trgColor = Color { r = 0, g = 0, b = 255, a = 255 }
-            local appPrefs <const> = app.preferences
-            if appPrefs then
-                local slicePrefs <const> = appPrefs.slices
-                if slicePrefs then
-                    local prefsColor <const> = slicePrefs.default_color --[[@as Color]]
-                    if prefsColor and prefsColor.alpha > 0 then
-                        trgColor = Color {
-                            r = math.min(math.max(prefsColor.red, 0), 255),
-                            g = math.min(math.max(prefsColor.green, 0), 255),
-                            b = math.min(math.max(prefsColor.blue, 0), 255),
-                            a = math.min(math.max(prefsColor.alpha, 0), 255)
-                        }
+                local xtlInset <const> = inset
+                local ytlInset <const> = inset
+                local xbrInset <const> = (w - 1) - inset
+                local ybrInset <const> = (h - 1) - inset
+
+                local trgColor = Color { r = 0, g = 0, b = 255, a = 255 }
+                local appPrefs <const> = app.preferences
+                if appPrefs then
+                    local slicePrefs <const> = appPrefs.slices
+                    if slicePrefs then
+                        local prefsColor <const> = slicePrefs.default_color --[[@as Color]]
+                        if prefsColor and prefsColor.alpha > 0 then
+                            trgColor = Color {
+                                r = math.min(math.max(prefsColor.red, 0), 255),
+                                g = math.min(math.max(prefsColor.green, 0), 255),
+                                b = math.min(math.max(prefsColor.blue, 0), 255),
+                                a = math.min(math.max(prefsColor.alpha, 0), 255)
+                            }
+                        end
                     end
                 end
+
+                local actFrObj <const> = app.frame
+                local actFrIdx <const> = actFrObj and actFrObj.frameNumber or 1
+                app.frame = sprite.frames[1]
+
+                app.transaction("New Slice From Mask", function()
+                    local slice <const> = sprite:newSlice(
+                        Rectangle(x, y, w, h))
+                    slice.color = trgColor
+                    slice.name = newNameVrf
+                    slice.pivot = pivotFromPreset(pivotCombo, w, h)
+
+                    slice.properties["fromFrame"] = actFrIdx - 1
+                    slice.properties["toFrame"] = actFrIdx - 1
+
+                    if xtlInset <= xbrInset and ytlInset <= ybrInset then
+                        local wInset <const> = 1 + xbrInset - xtlInset
+                        local hInset <const> = 1 + ybrInset - ytlInset
+                        slice.center = Rectangle(
+                            xtlInset, ytlInset, wInset, hInset)
+                    end
+
+                    local range <const> = app.range
+                    if range.sprite == sprite then
+                        range.slices = { slice }
+                    end
+                end)
+
+                app.frame = actFrObj
+                app.tool = oldTool
             end
-
-            local actFrObj <const> = app.frame
-            local actFrIdx <const> = actFrObj and actFrObj.frameNumber or 1
-            app.frame = sprite.frames[1]
-
-            app.transaction("New Slice From Mask", function()
-                local slice <const> = sprite:newSlice(
-                    Rectangle(x, y, w, h))
-                slice.color = trgColor
-                slice.name = newNameVrf
-                slice.pivot = pivotFromPreset(pivotCombo, w, h)
-
-                slice.properties["fromFrame"] = actFrIdx - 1
-                slice.properties["toFrame"] = actFrIdx - 1
-
-                if xtlInset <= xbrInset and ytlInset <= ybrInset then
-                    local wInset <const> = 1 + xbrInset - xtlInset
-                    local hInset <const> = 1 + ybrInset - ytlInset
-                    slice.center = Rectangle(
-                        xtlInset, ytlInset, wInset, hInset)
-                end
-
-                local range <const> = app.range
-                if range.sprite == sprite then
-                    range.slices = { slice }
-                end
-            end)
-
-            app.frame = actFrObj
-            app.tool = oldTool
         else
             app.alert {
                 title = "Error",
@@ -1242,8 +1247,8 @@ dlg:button {
 
         local wSprite <const> = sprite.width
         local hSprite <const> = sprite.height
-        local wVerif <const> = math.max(5, math.abs(width))
-        local hVerif <const> = math.max(5, math.abs(height))
+        local wVerif <const> = math.max(wMin, math.abs(width))
+        local hVerif <const> = math.max(hMin, math.abs(height))
 
         local actFrObj <const> = app.frame
         app.frame = sprite.frames[1]
