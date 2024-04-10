@@ -315,7 +315,6 @@ local pivotSet = "TOP_LEFT"
 
 local nudgeStep <const> = 1
 local displayMoveChecks <const> = true
--- When slices are too small, some problem prevents them from being resized.
 local wSliceMin <const> = 3
 local hSliceMin <const> = 3
 
@@ -904,34 +903,36 @@ dlg:button {
                         local ytlCelCl <const> = max(0, ytlCel)
 
                         if xtlCelCl <= xbrCelCl and ytlCelCl <= ybrCelCl then
-                            local wSlice <const> = max(wSliceMin, 1 + xbrCelCl - xtlCelCl)
-                            local hSlice <const> = max(hSliceMin, 1 + ybrCelCl - ytlCelCl)
-                            local slice <const> = sprite:newSlice(Rectangle(
-                                xtlCelCl, ytlCelCl, wSlice, hSlice))
+                            local wSlice <const> = 1 + xbrCelCl - xtlCelCl
+                            local hSlice <const> = 1 + ybrCelCl - ytlCelCl
+                            if wSlice >= wSliceMin and hSlice >= hSliceMin then
+                                local slice <const> = sprite:newSlice(Rectangle(
+                                    xtlCelCl, ytlCelCl, wSlice, hSlice))
 
-                            lenNewSlices = lenNewSlices + 1
-                            newSlices[lenNewSlices] = slice
+                                lenNewSlices = lenNewSlices + 1
+                                newSlices[lenNewSlices] = slice
 
-                            slice.color = trgColor
-                            slice.name = strfmt(format, newNameVrf, lenNewSlices)
-                            slice.pivot = pivotFromPreset(pivotCombo,
-                                wSlice, hSlice)
+                                slice.color = trgColor
+                                slice.name = strfmt(format, newNameVrf, lenNewSlices)
+                                slice.pivot = pivotFromPreset(pivotCombo,
+                                    wSlice, hSlice)
 
-                            slice.properties["fromFrame"] = actFrIdx - 1
-                            slice.properties["toFrame"] = actFrIdx - 1
+                                slice.properties["fromFrame"] = actFrIdx - 1
+                                slice.properties["toFrame"] = actFrIdx - 1
 
-                            local xbrInset <const> = (wSlice - 1) - inset
-                            local ybrInset <const> = (hSlice - 1) - inset
-                            if xtlInset <= xbrInset and ytlInset <= ybrInset then
-                                local wInset <const> = 1 + xbrInset - xtlInset
-                                local hInset <const> = 1 + ybrInset - ytlInset
-                                slice.center = Rectangle(
-                                    xtlInset, ytlInset, wInset, hInset)
-                            end -- End set corners are valid.
-                        end     -- End bounds corners are valid.
-                    end         -- End image is not empty.
-                end             -- End cel exists.
-            end                 -- End cels loop.
+                                local xbrInset <const> = (wSlice - 1) - inset
+                                local ybrInset <const> = (hSlice - 1) - inset
+                                if xtlInset <= xbrInset and ytlInset <= ybrInset then
+                                    local wInset <const> = 1 + xbrInset - xtlInset
+                                    local hInset <const> = 1 + ybrInset - ytlInset
+                                    slice.center = Rectangle(
+                                        xtlInset, ytlInset, wInset, hInset)
+                                end -- End set corners are valid.
+                            end     -- End slice size is greater than minimum.
+                        end         -- End bounds corners are valid.
+                    end             -- End image is not empty.
+                end                 -- End cel exists.
+            end                     -- End cels loop.
         end)
 
         range.slices = newSlices
