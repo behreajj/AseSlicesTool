@@ -927,11 +927,11 @@ dlg:button {
                                 local hInset <const> = 1 + ybrInset - ytlInset
                                 slice.center = Rectangle(
                                     xtlInset, ytlInset, wInset, hInset)
-                            end
-                        end
-                    end
-                end
-            end
+                            end -- End set corners are valid.
+                        end     -- End bounds corners are valid.
+                    end         -- End image is not empty.
+                end             -- End cel exists.
+            end                 -- End cels loop.
         end)
 
         range.slices = newSlices
@@ -1285,8 +1285,8 @@ dlg:button {
                         yPivSrc = srcPivot.y
                     end
 
-                    local xRatio <const> = (wTrg - 1.0) / (wSrc - 1.0)
-                    local yRatio <const> = (hTrg - 1.0) / (hSrc - 1.0)
+                    local xRatio <const> = wSrc > 1 and (wTrg - 1.0) / (wSrc - 1.0) or 0.0
+                    local yRatio <const> = hSrc > 1 and (hTrg - 1.0) / (hSrc - 1.0) or 0.0
 
                     local xPivTrgf <const> = xPivSrc * xRatio
                     local yPivTrgf <const> = yPivSrc * yRatio
