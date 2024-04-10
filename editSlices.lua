@@ -311,12 +311,14 @@ end
 
 local wSet = 24
 local hSet = 24
--- When slices are too small, some problem prevents them from being resized.
-local wMin = 3
-local hMin = 3
 local pivotSet = "TOP_LEFT"
+
 local nudgeStep <const> = 1
 local displayMoveChecks <const> = true
+-- When slices are too small, some problem prevents them from being resized.
+local wSliceMin <const> = 3
+local hSliceMin <const> = 3
+
 if app.preferences then
     local newFilePrefs <const> = app.preferences.new_file
     if newFilePrefs then
@@ -773,9 +775,9 @@ dlg:button {
 
         local appPrefs <const> = app.preferences
         if appPrefs then
-            local generalPrefs <const> = appPrefs.general
-            if generalPrefs then
-                local visTimeline <const> = generalPrefs.visible_timeline --[[@as boolean]]
+            local gnrlPrefs <const> = appPrefs.general
+            if gnrlPrefs then
+                local visTimeline <const> = gnrlPrefs.visible_timeline --[[@as boolean]]
                 if visTimeline and visTimeline == true then
                     tlHidden = false
                 end
@@ -901,9 +903,9 @@ dlg:button {
                         local xtlCelCl <const> = max(0, xtlCel)
                         local ytlCelCl <const> = max(0, ytlCel)
 
-                        if xtlCelCl < xbrCelCl and ytlCelCl < ybrCelCl then
-                            local wSlice <const> = 1 + xbrCelCl - xtlCelCl
-                            local hSlice <const> = 1 + ybrCelCl - ytlCelCl
+                        if xtlCelCl <= xbrCelCl and ytlCelCl <= ybrCelCl then
+                            local wSlice <const> = max(wSliceMin, 1 + xbrCelCl - xtlCelCl)
+                            local hSlice <const> = max(hSliceMin, 1 + ybrCelCl - ytlCelCl)
                             local slice <const> = sprite:newSlice(Rectangle(
                                 xtlCelCl, ytlCelCl, wSlice, hSlice))
 
@@ -959,7 +961,7 @@ dlg:button {
             local w <const> = math.max(1, math.abs(maskBounds.width))
             local h <const> = math.max(1, math.abs(maskBounds.height))
 
-            if w >= wMin and h >= hMin then
+            if w >= wSliceMin and h >= hSliceMin then
                 local oldTool <const> = app.tool.id
                 app.tool = "slice"
 
@@ -1247,8 +1249,8 @@ dlg:button {
 
         local wSprite <const> = sprite.width
         local hSprite <const> = sprite.height
-        local wVerif <const> = math.max(wMin, math.abs(width))
-        local hVerif <const> = math.max(hMin, math.abs(height))
+        local wVerif <const> = math.max(wSliceMin, math.abs(width))
+        local hVerif <const> = math.max(hSliceMin, math.abs(height))
 
         local actFrObj <const> = app.frame
         app.frame = sprite.frames[1]
