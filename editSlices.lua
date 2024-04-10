@@ -1242,8 +1242,8 @@ dlg:button {
 
         local wSprite <const> = sprite.width
         local hSprite <const> = sprite.height
-        local wVerif <const> = math.max(2, math.abs(width))
-        local hVerif <const> = math.max(2, math.abs(height))
+        local wVerif <const> = math.max(5, math.abs(width))
+        local hVerif <const> = math.max(5, math.abs(height))
 
         local actFrObj <const> = app.frame
         app.frame = sprite.frames[1]
