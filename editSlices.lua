@@ -461,6 +461,7 @@ dlg:button {
         end
 
         local actFrObj <const> = app.frame
+        local actFrIdx <const> = actFrObj and actFrObj.frameNumber or 1
         app.frame = sprite.frames[1]
 
         ---@type Slice[]
@@ -482,6 +483,19 @@ dlg:button {
 
                     local trgSlice <const> = sprite:newSlice(trgBounds)
                     duplicates[#duplicates + 1] = trgSlice
+
+                    local fromFrame = actFrIdx - 1
+                    if srcSlice.properties["fromFrame"] then
+                        fromFrame = srcSlice.properties["fromFrame"] --[[@as integer]]
+                    end
+
+                    local toFrame = actFrIdx - 1
+                    if srcSlice.properties["toFrame"] then
+                        fromFrame = srcSlice.properties["toFrame"] --[[@as integer]]
+                    end
+
+                    trgSlice.properties["fromFrame"] = fromFrame
+                    trgSlice.properties["toFrame"] = toFrame
 
                     local srcCenter <const> = srcSlice.center
                     if srcCenter and srcCenter ~= nil then
@@ -781,6 +795,9 @@ dlg:button {
                             slice.pivot = pivotFromPreset(pivotCombo,
                                 wSlice, hSlice)
 
+                            slice.properties["fromFrame"] = actFrIdx - 1
+                            slice.properties["toFrame"] = actFrIdx - 1
+
                             local xbrInset <const> = (wSlice - 1) - inset
                             local ybrInset <const> = (hSlice - 1) - inset
                             if xtlInset < xbrInset and ytlInset < ybrInset then
@@ -858,6 +875,7 @@ dlg:button {
             end
 
             local actFrObj <const> = app.frame
+            local actFrIdx <const> = actFrObj and actFrObj.frameNumber or 1
             app.frame = sprite.frames[1]
 
             app.transaction("New Slice From Mask", function()
@@ -866,6 +884,9 @@ dlg:button {
                 slice.color = trgColor
                 slice.name = newNameVrf
                 slice.pivot = pivotFromPreset(pivotCombo, w, h)
+
+                slice.properties["fromFrame"] = actFrIdx - 1
+                slice.properties["toFrame"] = actFrIdx - 1
 
                 if xtlInset < xbrInset and ytlInset < ybrInset then
                     local wInset <const> = 1 + xbrInset - xtlInset
@@ -1142,12 +1163,11 @@ dlg:button {
 
 dlg:newrow { always = false }
 
-dlg:slider {
+dlg:number {
     id = "insetAmount",
     label = "Amount:",
-    min = 0,
-    max = 96,
-    value = 0,
+    text = string.format("%d", 0),
+    decimals = 0,
     focus = false
 }
 
