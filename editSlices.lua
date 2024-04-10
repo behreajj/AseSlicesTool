@@ -151,42 +151,41 @@ local function translateSlices(
         return
     end
 
-    local dxNonZero <const> = dx ~= 0
-    local dyNonZero <const> = dy ~= 0
-    local wSprite <const> = sprite.width
-    local hSprite <const> = sprite.height
-
-    local xGrOff = 0
-    local yGrOff = 0
-    local xGrScl = 1
-    local yGrScl = 1
-
-    local appPrefs <const> = app.preferences
-    if appPrefs then
-        local docPrefs <const> = appPrefs.document(sprite)
-        if docPrefs then
-            local gridPrefs <const> = docPrefs.grid
-            if gridPrefs then
-                local useSnap <const> = gridPrefs.snap --[[@as boolean]]
-                if useSnap then
-                    local grid <const> = sprite.gridBounds
-                    xGrOff = grid.x
-                    yGrOff = grid.y
-                    xGrScl = math.max(1, math.abs(grid.width))
-                    yGrScl = math.max(1, math.abs(grid.height))
-                end
-            end
-        end
-    end
-
     local abs <const> = math.abs
     local max <const> = math.max
-    local min <const> = math.min
 
     local actFrObj <const> = app.frame
     app.frame = sprite.frames[1]
 
     if moveBounds then
+        local dxNonZero <const> = dx ~= 0
+        local dyNonZero <const> = dy ~= 0
+        local wSprite <const> = sprite.width
+        local hSprite <const> = sprite.height
+
+        local xGrOff = 0
+        local yGrOff = 0
+        local xGrScl = 1
+        local yGrScl = 1
+
+        local appPrefs <const> = app.preferences
+        if appPrefs then
+            local docPrefs <const> = appPrefs.document(sprite)
+            if docPrefs then
+                local gridPrefs <const> = docPrefs.grid
+                if gridPrefs then
+                    local useSnap <const> = gridPrefs.snap --[[@as boolean]]
+                    if useSnap then
+                        local grid <const> = sprite.gridBounds
+                        xGrOff = grid.x
+                        yGrOff = grid.y
+                        xGrScl = math.max(1, math.abs(grid.width))
+                        yGrScl = math.max(1, math.abs(grid.height))
+                    end
+                end
+            end
+        end
+
         local trsName <const> = string.format("Nudge Slices (%d, %d)", dx, dy)
         app.transaction(trsName, function()
             local i = 0
@@ -266,11 +265,12 @@ local function translateSlices(
                 local slice <const> = slices[k]
                 local bounds <const> = slice.bounds
                 if bounds then
-                    local xtlBounds <const> = bounds.x
-                    local ytlBounds <const> = bounds.y
                     local wBounds <const> = max(1, abs(bounds.width))
                     local hBounds <const> = max(1, abs(bounds.height))
 
+                    -- TODO: The default case where no src inset already exists,
+                    -- this needs to respond to the inset amount, otherwise there
+                    -- is no point do to the clamping.
                     local xtlSrcInset = 0
                     local ytlSrcInset = 0
                     local wSrcInset = wBounds
