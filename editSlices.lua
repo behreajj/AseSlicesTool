@@ -221,6 +221,7 @@ end
 local wSet = 24
 local hSet = 24
 local pivotSet = "TOP_LEFT"
+local nudgeStep <const> = 1
 if app.preferences then
     local newFilePrefs <const> = app.preferences.new_file
     if newFilePrefs then
@@ -1006,7 +1007,7 @@ dlg:button {
     label = "Nudge:",
     focus = false,
     onclick = function()
-        translateSlices(0, -1)
+        translateSlices(0, -nudgeStep)
     end
 }
 
@@ -1015,7 +1016,7 @@ dlg:button {
     text = "&A",
     focus = false,
     onclick = function()
-        translateSlices(-1, 0)
+        translateSlices(-nudgeStep, 0)
     end
 }
 
@@ -1024,7 +1025,7 @@ dlg:button {
     text = "&S",
     focus = false,
     onclick = function()
-        translateSlices(0, 1)
+        translateSlices(0, nudgeStep)
     end
 }
 
@@ -1033,7 +1034,7 @@ dlg:button {
     text = "&D",
     focus = false,
     onclick = function()
-        translateSlices(1, 0)
+        translateSlices(nudgeStep, 0)
     end
 }
 
