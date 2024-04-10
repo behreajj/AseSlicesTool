@@ -34,8 +34,9 @@ The features of this dialog, per each button, are:
 - **None**: Deselects all the sprite's slices.
 - **Copy**: Partially copies the selected slices, avoiding custom user data and properties. Inverts the slices' colors. Warns before execution.
 - **Delete**: Deletes the selected slices. Warns before execution.
-- **From**: Creates a slice from the bounds of a selection mask.
-- **To**: Converts the selected slices to a selection mask.
+- **Frame**: Creates multiple slices from the cels in the active frame.
+- **Mask**: Creates a slice from a selection mask.
+- **Slice**: Creates a selection mask from a slice.
 - **W**: Nudges the selected slices up toward y = 0.
 - **A**: Nudges the selected slices left toward x = 0.
 - **S**: Nudges the selected slices down toward y = height - 1.

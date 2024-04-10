@@ -1,12 +1,26 @@
--- TODO: Option to create a slice for each cel in a range at the active frame
--- &FRAME, get layers from range if the range is not of type frame and is not
--- empty, otherwise get all layers in hierarchy. Then change label to Convert
--- and change names of &FROM and &TO to MAS&K and something else... maybe
--- SLIC&E, then change E shortcut to T shortcut for DELE&TE.
-
 --[[Slices have an internal reference to the frame on which they were
     created. This reference cannot be accessed via Lua script.
 ]]
+
+---@param layer Layer
+---@param array Layer[]
+---@return Layer[]
+local function appendLeaves(layer, array)
+    if layer.isVisible then
+        if layer.isGroup then
+            local childLayers <const> = layer.layers --[=[@as Layer[]]=]
+            local lenChildLayers <const> = #childLayers
+            local i = 0
+            while i < lenChildLayers do
+                i = i + 1
+                appendLeaves(childLayers[i], array)
+            end
+        elseif (not layer.isReference) then
+            array[#array + 1] = layer
+        end
+    end
+    return array
+end
 
 ---@param orig number
 ---@param dest number
@@ -25,6 +39,34 @@ local function lerpAngleCcw(orig, dest, t, range)
         return (u * o + t * (d + rangeVerif)) % rangeVerif
     else
         return u * o + t * d
+    end
+end
+
+---@param pivotCombo string
+---@param w integer
+---@param h integer
+---@return Point
+local function pivotFromPreset(pivotCombo, w, h)
+    if pivotCombo == "TOP_LEFT" then
+        return Point(0, 0)
+    elseif pivotCombo == "TOP_CENTER" then
+        return Point(w // 2, 0)
+    elseif pivotCombo == "TOP_RIGHT" then
+        return Point(w - 1, 0)
+    elseif pivotCombo == "CENTER_LEFT" then
+        return Point(0, h // 2)
+    elseif pivotCombo == "CENTER" then
+        return Point(w // 2, h // 2)
+    elseif pivotCombo == "CENTER_RIGHT" then
+        return Point(w - 1, h // 2)
+    elseif pivotCombo == "BOTTOM_LEFT" then
+        return Point(0, h - 1)
+    elseif pivotCombo == "BOTTOM_CENTER" then
+        return Point(w // 2, h - 1)
+    elseif pivotCombo == "BOTTOM_RIGHT" then
+        return Point(w - 1, h - 1)
+    else
+        return Point(w // 2, h // 2)
     end
 end
 
@@ -291,7 +333,7 @@ dlg:button {
 }
 
 dlg:button {
-    id = "selectNoneButton",
+    id = "deselectButton",
     text = "&NONE",
     focus = false,
     visible = true,
@@ -312,7 +354,6 @@ dlg:button {
         end
 
         range.slices = {}
-
         app.tool = oldTool
         app.refresh()
     end
@@ -403,8 +444,8 @@ dlg:button {
             end
         end
 
-        local oldActiveFrame <const> = app.frame
-        app.frame = 1
+        local actFrObj <const> = app.frame
+        app.frame = sprite.frames[1]
 
         ---@type Slice[]
         local duplicates <const> = {}
@@ -488,7 +529,7 @@ dlg:button {
             end
         end)
 
-        app.frame = oldActiveFrame
+        app.frame = actFrObj
         range.slices = duplicates
         app.tool = oldTool
         app.refresh()
@@ -497,7 +538,7 @@ dlg:button {
 
 dlg:button {
     id = "deleteButton",
-    text = "D&ELETE",
+    text = "DELE&TE",
     focus = false,
     onclick = function()
         local sprite <const> = app.sprite
@@ -561,9 +602,188 @@ dlg:button {
 dlg:newrow { always = false }
 
 dlg:button {
-    id = "fromMaskButton",
-    text = "&FROM",
-    label = "Mask:",
+    id = "fromFramesButton",
+    label = "Convert:",
+    text = "&FRAME",
+    focus = false,
+    onclick = function()
+        local sprite <const> = app.sprite
+        if not sprite then return end
+
+        local actFrObj <const> = app.frame
+        if not actFrObj then return end
+        local actFrIdx <const> = actFrObj.frameNumber
+
+        local tlHidden = true
+        local trgColor = Color { r = 0, g = 0, b = 255, a = 255 }
+
+        local appPrefs <const> = app.preferences
+        if appPrefs then
+            local generalPrefs <const> = appPrefs.general
+            if generalPrefs then
+                local visTimeline <const> = generalPrefs.visible_timeline --[[@as boolean]]
+                if visTimeline and visTimeline == true then
+                    tlHidden = false
+                end
+            end
+
+            local slicePrefs <const> = appPrefs.slices
+            if slicePrefs then
+                local prefsColor <const> = slicePrefs.default_color --[[@as Color]]
+                if prefsColor and prefsColor.alpha > 0 then
+                    trgColor = Color {
+                        r = math.min(math.max(prefsColor.red, 0), 255),
+                        g = math.min(math.max(prefsColor.green, 0), 255),
+                        b = math.min(math.max(prefsColor.blue, 0), 255),
+                        a = math.min(math.max(prefsColor.alpha, 0), 255)
+                    }
+                end
+            end
+        end
+
+        if tlHidden then
+            app.command.Timeline { open = true }
+        end
+
+        ---@type Layer[]
+        local chosenLayers = {}
+        local range <const> = app.range
+        if range.sprite == sprite then
+            if range.isEmpty or range.type == RangeType.FRAMES then
+                ---@type Layer[]
+                local leaves <const> = {}
+                local spriteLayers <const> = sprite.layers
+                local lenSpriteLayers <const> = #spriteLayers
+                local i = 0
+                while i < lenSpriteLayers do
+                    i = i + 1
+                    appendLeaves(spriteLayers[i], leaves)
+                end
+                chosenLayers = leaves
+            else
+                local rangeLayers <const> = range.layers
+                local lenRangeLayers <const> = #rangeLayers
+                local h = 0
+                while h < lenRangeLayers do
+                    h = h + 1
+                    local rangeLayer <const> = rangeLayers[h]
+                    if rangeLayer.isVisible
+                        and (not rangeLayer.isGroup)
+                        and (not rangeLayer.isReference) then
+                        chosenLayers[#chosenLayers + 1] = rangeLayer
+                    end
+                end
+            end
+        end
+
+        if tlHidden then
+            app.command.Timeline { close = true }
+        end
+
+        local lenChosenLayers <const> = #chosenLayers
+        if lenChosenLayers < 1 then
+            app.alert {
+                title = "Error",
+                text = "No visible layers selected at this frame."
+            }
+            return
+        end
+
+        table.sort(chosenLayers, function(a, b)
+            if a.stackIndex == b.stackIndex then
+                return a.name < b.name
+            end
+            return a.stackIndex < b.stackIndex
+        end)
+
+        local oldTool <const> = app.tool.id
+        app.tool = "slice"
+        app.frame = sprite.frames[1]
+
+        local args <const> = dlg.data
+        local inset <const> = args.insetAmount --[[@as integer]]
+        local pivotCombo <const> = args.pivotCombo --[[@as string]]
+        local newName <const> = args.nameEntry --[[@as string]]
+
+        local newNameVrf = "Slice"
+        if newName and #newName > 0 then
+            newNameVrf = newName
+        end
+
+        local wSprite <const> = sprite.width
+        local hSprite <const> = sprite.height
+        local xtlInset <const> = inset
+        local ytlInset <const> = inset
+        local format <const> = "%s %d"
+
+        local strfmt <const> = string.format
+        local abs <const> = math.abs
+        local max <const> = math.max
+        local min <const> = math.min
+
+        ---@type Slice[]
+        local newSlices <const> = {}
+        local lenNewSlices = 0
+
+        app.transaction("New Slices From Frame", function()
+            local i = 0
+            while i < lenChosenLayers do
+                i = i + 1
+                local layer <const> = chosenLayers[i]
+                local cel <const> = layer:cel(actFrIdx)
+                if cel then
+                    local celImage <const> = cel.image
+                    if not celImage:isEmpty() then
+                        -- Cel may be out of bounds, so it must be intersected
+                        -- with sprite canvas.
+                        local celBounds <const> = cel.bounds
+                        local xtlCel <const> = celBounds.x
+                        local ytlCel <const> = celBounds.y
+                        local wCel <const> = max(1, abs(celBounds.width))
+                        local hCel <const> = max(1, abs(celBounds.height))
+                        local xbrCelCl <const> = min(wSprite - 1, xtlCel + wCel - 1)
+                        local ybrCelCl <const> = min(hSprite - 1, ytlCel + hCel - 1)
+                        local xtlCelCl <const> = max(0, xtlCel)
+                        local ytlCelCl <const> = max(0, ytlCel)
+
+                        if xtlCelCl < xbrCelCl and ytlCelCl < ybrCelCl then
+                            local wSlice <const> = 1 + xbrCelCl - xtlCelCl
+                            local hSlice <const> = 1 + ybrCelCl - ytlCelCl
+                            local slice <const> = sprite:newSlice(Rectangle(
+                                xtlCelCl, ytlCelCl, wSlice, hSlice))
+
+                            lenNewSlices = lenNewSlices + 1
+                            newSlices[lenNewSlices] = slice
+
+                            slice.color = trgColor
+                            slice.name = strfmt(format, newNameVrf, lenNewSlices)
+                            slice.pivot = pivotFromPreset(pivotCombo,
+                                wSlice, hSlice)
+
+                            local xbrInset <const> = (wSlice - 1) - inset
+                            local ybrInset <const> = (hSlice - 1) - inset
+                            if xtlInset < xbrInset and ytlInset < ybrInset then
+                                local wInset <const> = 1 + xbrInset - xtlInset
+                                local hInset <const> = 1 + ybrInset - ytlInset
+                                slice.center = Rectangle(
+                                    xtlInset, ytlInset, wInset, hInset)
+                            end
+                        end
+                    end
+                end
+            end
+        end)
+
+        range.slices = newSlices
+        app.frame = actFrObj
+        app.tool = oldTool
+        app.refresh()
+    end
+}
+
+dlg:button {
+    id = "masktoSliceButton",
+    text = "MAS&K",
     focus = false,
     onclick = function()
         local sprite <const> = app.sprite
@@ -599,63 +819,38 @@ dlg:button {
             local xbrInset <const> = (w - 1) - inset
             local ybrInset <const> = (h - 1) - inset
 
-            local trgColor = Color {
-                r = 255,
-                g = 255,
-                b = 255,
-                a = 255
-            }
+            local trgColor = Color { r = 0, g = 0, b = 255, a = 255 }
             local appPrefs <const> = app.preferences
             if appPrefs then
                 local slicePrefs <const> = appPrefs.slices
                 if slicePrefs then
                     local prefsColor <const> = slicePrefs.default_color --[[@as Color]]
-                    if prefsColor then
-                        if prefsColor.alpha > 0 then
-                            trgColor = Color {
-                                r = math.min(math.max(prefsColor.red, 0), 255),
-                                g = math.min(math.max(prefsColor.green, 0), 255),
-                                b = math.min(math.max(prefsColor.blue, 0), 255),
-                                a = math.min(math.max(prefsColor.alpha, 0), 255)
-                            }
-                        end
+                    if prefsColor and prefsColor.alpha > 0 then
+                        trgColor = Color {
+                            r = math.min(math.max(prefsColor.red, 0), 255),
+                            g = math.min(math.max(prefsColor.green, 0), 255),
+                            b = math.min(math.max(prefsColor.blue, 0), 255),
+                            a = math.min(math.max(prefsColor.alpha, 0), 255)
+                        }
                     end
                 end
             end
 
-            local oldActiveFrame <const> = app.frame
-            app.frame = 1
+            local actFrObj <const> = app.frame
+            app.frame = sprite.frames[1]
 
             app.transaction("New Slice From Mask", function()
                 local slice <const> = sprite:newSlice(
                     Rectangle(x, y, w, h))
                 slice.color = trgColor
                 slice.name = newNameVrf
+                slice.pivot = pivotFromPreset(pivotCombo, w, h)
 
                 if xtlInset < xbrInset and ytlInset < ybrInset then
                     local wInset <const> = 1 + xbrInset - xtlInset
                     local hInset <const> = 1 + ybrInset - ytlInset
-                    slice.center = Rectangle(xtlInset, ytlInset, wInset, hInset)
-                end
-
-                if pivotCombo == "TOP_LEFT" then
-                    slice.pivot = Point(0, 0)
-                elseif pivotCombo == "TOP_CENTER" then
-                    slice.pivot = Point(w // 2, 0)
-                elseif pivotCombo == "TOP_RIGHT" then
-                    slice.pivot = Point(w - 1, 0)
-                elseif pivotCombo == "CENTER_LEFT" then
-                    slice.pivot = Point(0, h // 2)
-                elseif pivotCombo == "CENTER" then
-                    slice.pivot = Point(w // 2, h // 2)
-                elseif pivotCombo == "CENTER_RIGHT" then
-                    slice.pivot = Point(w - 1, h // 2)
-                elseif pivotCombo == "BOTTOM_LEFT" then
-                    slice.pivot = Point(0, h - 1)
-                elseif pivotCombo == "BOTTOM_CENTER" then
-                    slice.pivot = Point(w // 2, h - 1)
-                elseif pivotCombo == "BOTTOM_RIGHT" then
-                    slice.pivot = Point(w - 1, h - 1)
+                    slice.center = Rectangle(
+                        xtlInset, ytlInset, wInset, hInset)
                 end
 
                 local range <const> = app.range
@@ -664,7 +859,7 @@ dlg:button {
                 end
             end)
 
-            app.frame = oldActiveFrame
+            app.frame = actFrObj
             app.tool = oldTool
         else
             app.alert {
@@ -678,8 +873,8 @@ dlg:button {
 }
 
 dlg:button {
-    id = "toMaskButton",
-    text = "&TO",
+    id = "slicetoMaskButton",
+    text = "SLIC&E",
     focus = false,
     onclick = function()
         local sprite <const> = app.sprite
