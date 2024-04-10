@@ -1,3 +1,6 @@
+--TODO: Test to see what is in slice properties and whether you should set
+-- anything there. Use writeProps from AsepriteAddons JSON.
+
 --[[Slices have an internal reference to the frame on which they were
     created. This reference cannot be accessed via Lua script.
 ]]
@@ -154,6 +157,8 @@ local function translateSlices(dx, dy)
             end
         end
     end
+
+    app.frame = sprite.frames[1]
 
     local abs <const> = math.abs
     local max <const> = math.max
@@ -1024,6 +1029,8 @@ dlg:button {
         local wVerif <const> = math.max(2, math.abs(width))
         local hVerif <const> = math.max(2, math.abs(height))
 
+        app.frame = sprite.frames[1]
+
         local abs <const> = math.abs
         local max <const> = math.max
 
@@ -1168,6 +1175,8 @@ dlg:button {
         local args <const> = dlg.data
         local inset <const> = args.insetAmount --[[@as integer]]
 
+        app.frame = sprite.frames[1]
+        
         local abs <const> = math.abs
         local max <const> = math.max
 
@@ -1232,6 +1241,8 @@ dlg:button {
 
         local args <const> = dlg.data
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
+
+        app.frame = sprite.frames[1]
 
         local abs <const> = math.abs
         local max <const> = math.max
