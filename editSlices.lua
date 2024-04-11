@@ -374,8 +374,7 @@ dlg:button {
         local i = 0
         while i < lenSpriteSlices do
             i = i + 1
-            local spriteSlice <const> = spriteSlices[i]
-            assignSlices[i] = spriteSlice
+            assignSlices[i] = spriteSlices[i]
         end
 
         range.slices = assignSlices
@@ -557,7 +556,7 @@ dlg:button {
         local min <const> = math.min
         local max <const> = math.max
 
-        local defaultColor = Color { r = 0, g = 0, b = 0, a = 255 }
+        local defaultColor = Color { r = 0, g = 0, b = 255, a = 255 }
         local appPrefs <const> = app.preferences
         if appPrefs then
             local slicePrefs <const> = appPrefs.slices
@@ -919,8 +918,7 @@ dlg:button {
                         local celPos <const> = cel.position
                         local celImage <const> = cel.image
                         local ref <const> = layer.isBackground
-                            and bkgHex
-                            or alphaIndex
+                            and bkgHex or alphaIndex
                         local trimRect <const> = celImage:shrinkBounds(ref)
                         xtlCel = celPos.x + trimRect.x
                         ytlCel = celPos.y + trimRect.y
@@ -961,10 +959,10 @@ dlg:button {
                                     local hInset <const> = 1 + ybrInset - ytlInset
                                     slice.center = Rectangle(
                                         xtlInset, ytlInset, wInset, hInset)
-                                end -- End set corners are valid.
+                                end -- End inset corners are valid.
                             end     -- End slice size is gteq minimum.
                         end         -- End bounds corners are valid.
-                    end             -- End cel valid size.
+                    end             -- End cel nonzero bounds.
                 end                 -- End cel exists.
             end                     -- End cels loop.
         end)
