@@ -1499,8 +1499,6 @@ dlg:button {
         local args <const> = dlg.data
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
 
-        app.frame = sprite.frames[1]
-
         local abs <const> = math.abs
         local max <const> = math.max
 
@@ -1713,7 +1711,6 @@ dlg:button {
             i = i + 1
             sortedSlices[i] = rangeSlices[i]
         end
-
         table.sort(sortedSlices, tlComparator)
 
         local format <const> = "%s %d"
