@@ -255,7 +255,8 @@ local function translateSlices(
     end
 
     if moveInset then
-        local insetAmt2 <const> = insetAmount + insetAmount
+        local insVerif <const> = math.abs(insetAmount)
+        local insVerif2 <const> = insVerif + insVerif
         local trsName <const> = string.format("Nudge Insets (%d, %d)", dx, dy)
         app.transaction(trsName, function()
             local k = 0
@@ -267,10 +268,10 @@ local function translateSlices(
                     local wBounds <const> = max(1, abs(bounds.width))
                     local hBounds <const> = max(1, abs(bounds.height))
 
-                    local xtlSrcInset = insetAmount
-                    local ytlSrcInset = insetAmount
-                    local wSrcInset = wBounds - insetAmt2
-                    local hSrcInset = hBounds - insetAmt2
+                    local xtlSrcInset = insVerif
+                    local ytlSrcInset = insVerif
+                    local wSrcInset = wBounds - insVerif2
+                    local hSrcInset = hBounds - insVerif2
 
                     local srcInset <const> = slice.center
                     if srcInset then
@@ -879,8 +880,9 @@ dlg:button {
         end
         app.command.SwitchColors()
 
-        local xtlInset <const> = inset
-        local ytlInset <const> = inset
+        local insVerif = math.abs(inset)
+        local xtlInset <const> = insVerif
+        local ytlInset <const> = insVerif
         local format <const> = "%s %d"
 
         local strfmt <const> = string.format
@@ -952,8 +954,8 @@ dlg:button {
                                 slice.properties["fromFrame"] = actFrIdx - 1
                                 slice.properties["toFrame"] = actFrIdx - 1
 
-                                local xbrInset <const> = (wSlice - 1) - inset
-                                local ybrInset <const> = (hSlice - 1) - inset
+                                local xbrInset <const> = (wSlice - 1) - insVerif
+                                local ybrInset <const> = (hSlice - 1) - insVerif
                                 if xtlInset <= xbrInset and ytlInset <= ybrInset then
                                     local wInset <const> = 1 + xbrInset - xtlInset
                                     local hInset <const> = 1 + ybrInset - ytlInset
@@ -1008,10 +1010,11 @@ dlg:button {
                     newNameVrf = newName
                 end
 
-                local xtlInset <const> = inset
-                local ytlInset <const> = inset
-                local xbrInset <const> = (w - 1) - inset
-                local ybrInset <const> = (h - 1) - inset
+                local insVerif = math.abs(inset)
+                local xtlInset <const> = insVerif
+                local ytlInset <const> = insVerif
+                local xbrInset <const> = (w - 1) - insVerif
+                local ybrInset <const> = (h - 1) - insVerif
 
                 local trgColor = Color { r = 0, g = 0, b = 255, a = 255 }
                 local appPrefs <const> = app.preferences
@@ -1427,6 +1430,7 @@ dlg:button {
 
         local args <const> = dlg.data
         local inset <const> = args.insetAmount --[[@as integer]]
+        local insVerif = math.abs(inset)
 
         local actFrObj <const> = app.frame
         app.frame = sprite.frames[1]
@@ -1434,7 +1438,7 @@ dlg:button {
         local abs <const> = math.abs
         local max <const> = math.max
 
-        app.transaction(string.format("Slice Inset %d", inset), function()
+        app.transaction(string.format("Slice Inset %d", insVerif), function()
             local i = 0
             while i < lenSlices do
                 i = i + 1
@@ -1446,10 +1450,10 @@ dlg:button {
                     local xbrSrc <const> = wSrc - 1
                     local ybrSrc <const> = hSrc - 1
 
-                    local xtlTrg <const> = inset
-                    local ytlTrg <const> = inset
-                    local xbrTrg <const> = xbrSrc - inset
-                    local ybrTrg <const> = ybrSrc - inset
+                    local xtlTrg <const> = insVerif
+                    local ytlTrg <const> = insVerif
+                    local xbrTrg <const> = xbrSrc - insVerif
+                    local ybrTrg <const> = ybrSrc - insVerif
 
                     if xtlTrg <= xbrTrg and ytlTrg <= ybrTrg then
                         local wTrg <const> = 1 + xbrTrg - xtlTrg
