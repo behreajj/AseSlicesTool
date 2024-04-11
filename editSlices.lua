@@ -207,13 +207,13 @@ local function translateSlices(
                         yTrg = yGrOff + (yGrid + dy) * yGrScl
                     end
 
-                    local wTrg <const> = max(1, abs(bounds.width))
-                    local hTrg <const> = max(1, abs(bounds.height))
                     local xBrTrg <const> = xTrg + wTrg - 1
                     local yBrTrg <const> = yTrg + hTrg - 1
 
                     if xTrg >= 0 and yTrg >= 0
                         and xBrTrg < wSprite and yBrTrg < hSprite then
+                        local wTrg <const> = max(1, abs(bounds.width))
+                        local hTrg <const> = max(1, abs(bounds.height))
                         slice.bounds = Rectangle(xTrg, yTrg, wTrg, hTrg)
                     end
                 end
@@ -557,12 +557,7 @@ dlg:button {
         local min <const> = math.min
         local max <const> = math.max
 
-        local defaultColor = Color {
-            r = 255,
-            g = 255,
-            b = 255,
-            a = 255
-        }
+        local defaultColor = Color { r = 0, g = 0, b = 0, a = 255 }
         local appPrefs <const> = app.preferences
         if appPrefs then
             local slicePrefs <const> = appPrefs.slices
