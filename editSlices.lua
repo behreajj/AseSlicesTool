@@ -880,10 +880,13 @@ dlg:button {
         end
         app.command.SwitchColors()
 
+        -- The problem with offsetting by the frame base index is that it could
+        -- be negative.
+        local frIdxDisplay = actFrIdx - 1
         local insVerif = math.abs(inset)
         local xtlInset <const> = insVerif
         local ytlInset <const> = insVerif
-        local format <const> = "%s %d"
+        local format <const> = "%s Fr%d No%d"
 
         local strfmt <const> = string.format
         local max <const> = math.max
@@ -947,7 +950,8 @@ dlg:button {
                                 newSlices[lenNewSlices] = slice
 
                                 slice.color = trgColor
-                                slice.name = strfmt(format, newNameVrf, lenNewSlices)
+                                slice.name = strfmt(format, newNameVrf,
+                                    frIdxDisplay, lenNewSlices)
                                 slice.pivot = pivotFromPreset(pivotCombo,
                                     wSlice, hSlice)
 
@@ -1209,24 +1213,24 @@ dlg:newrow { always = false }
 
 dlg:check {
     id = "moveBounds",
-    selected = true,
     text = "Bounds",
+    selected = true,
     focus = false,
     visible = displayMoveChecks
 }
 
 dlg:check {
     id = "movePivot",
-    selected = false,
     text = "Pivot",
+    selected = false,
     focus = false,
     visible = displayMoveChecks
 }
 
 dlg:check {
     id = "moveInset",
-    selected = false,
     text = "Inset",
+    selected = false,
     focus = false,
     visible = displayMoveChecks
 }
