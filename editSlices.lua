@@ -886,6 +886,8 @@ dlg:button {
         local insVerif = math.abs(inset)
         local xtlInset <const> = insVerif
         local ytlInset <const> = insVerif
+        -- This could layer name instead of or in addition to number, but the
+        -- problem is that layer names not unique identifiers.
         local format <const> = "%s Fr%d No%d"
 
         local strfmt <const> = string.format
