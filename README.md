@@ -141,5 +141,3 @@ Slice names cannot always be relied on as unique identifiers. Aseprite does no v
 When present, custom user data is enclosed in quotation marks, `"`. No attempt is made to escape characters or otherwise validate the data.
 
 As mentioned at the top, a slice may also have `fromFrame` and `toFrame` fields in its properties if it was created with the edit slices dialog. All frame indices begin at zero, not one. The sprite's `frameBaseIndex` is given at the bottom. As mentioned before, the Lua scripting API does not have access to internal slice frame data, so the data cannot be included.
-
-When padded, the pad color used is the image's transparent color, typically clear black. The scaling algorithm used defaults to nearest neighbor.

@@ -867,16 +867,18 @@ dlg:button {
         local bkgHex = 0
         app.command.SwitchColors()
         local bkgColor <const> = app.fgColor
-        if colorMode == ColorMode.GRAY then
-            local sr <const> = bkgColor.red
-            local sg <const> = bkgColor.green
-            local sb <const> = bkgColor.blue
-            local gray <const> = (sr * 2126 + sg * 7152 + sb * 722) // 10000
-            bkgHex = (bkgColor.alpha << 0x08) | gray
-        elseif colorMode == ColorMode.INDEXED then
-            bkgHex = bkgColor.index
-        elseif colorMode == ColorMode.RGB then
-            bkgHex = bkgColor.rgbaPixel
+        if bkgColor.alpha > 0 then
+            if colorMode == ColorMode.GRAY then
+                local sr <const> = bkgColor.red
+                local sg <const> = bkgColor.green
+                local sb <const> = bkgColor.blue
+                local gray <const> = (sr * 2126 + sg * 7152 + sb * 722) // 10000
+                bkgHex = (bkgColor.alpha << 0x08) | gray
+            elseif colorMode == ColorMode.INDEXED then
+                bkgHex = bkgColor.index
+            elseif colorMode == ColorMode.RGB then
+                bkgHex = bkgColor.rgbaPixel
+            end
         end
         app.command.SwitchColors()
 
@@ -887,7 +889,7 @@ dlg:button {
         local xtlInset <const> = insVerif
         local ytlInset <const> = insVerif
         -- This could layer name instead of or in addition to number, but the
-        -- problem is that layer names not unique identifiers.
+        -- problem is that layer names are not unique identifiers.
         local format <const> = "%s Fr%d No%d"
 
         local strfmt <const> = string.format
@@ -1047,7 +1049,8 @@ dlg:button {
                     local slice <const> = sprite:newSlice(
                         Rectangle(x, y, w, h))
                     slice.color = trgColor
-                    slice.name = newNameVrf
+                    slice.name = string.format("%s Fr%d", newNameVrf,
+                        actFrIdx - 1)
                     slice.pivot = pivotFromPreset(pivotCombo, w, h)
 
                     slice.properties["fromFrame"] = actFrIdx - 1

@@ -33,6 +33,27 @@ local versionFormat <const> = table.concat({
     "\"prNo\":%d}",
 }, ",")
 
+---@param source Image
+---@param padding integer
+---@param refHex integer
+local function padImage(source, padding, refHex)
+    local flatSpec <const> = source.spec
+    local padding2 <const> = padding + padding
+    local padSpec <const> = ImageSpec {
+        width = flatSpec.width + padding2,
+        height = flatSpec.height + padding2,
+        colorMode = flatSpec.colorMode,
+        transparentColor = flatSpec.transparentColor
+    }
+    padSpec.colorSpace = flatSpec.colorSpace
+    local padded <const> = Image(padSpec)
+    padded:clear(refHex)
+    padded:drawImage(source, Point(padding, padding),
+        255, BlendMode.SRC)
+
+    return padded
+end
+
 ---@param r integer
 ---@param g integer
 ---@param b integer
@@ -214,6 +235,13 @@ dlg:slider {
     value = 0
 }
 
+dlg:newrow { always = false }
+
+dlg:color {
+    id = "padColor",
+    color = Color { r = 0, g = 0, b = 0, a = 0 },
+}
+
 dlg:separator { id = "metaParamsSep" }
 
 dlg:combobox {
@@ -352,6 +380,24 @@ dlg:button {
         local useImageResize <const> = scale > 1
         local useImagePad <const> = padding > 0
 
+        local refHex = alphaIndex
+        if useImagePad then
+            local padColor <const> = args.padColor --[[@as Color]]
+            if padColor.alpha > 0 then
+                if colorMode == ColorMode.GRAY then
+                    local sr <const> = padColor.red
+                    local sg <const> = padColor.green
+                    local sb <const> = padColor.blue
+                    local gray <const> = (sr * 2126 + sg * 7152 + sb * 722) // 10000
+                    refHex = (padColor.alpha << 0x08) | gray
+                elseif colorMode == ColorMode.INDEXED then
+                    refHex = padColor.index
+                elseif colorMode == ColorMode.RGB then
+                    refHex = padColor.rgbaPixel
+                end
+            end
+        end
+
         local trgSlices = spriteSlices
         if useSelected then
             local oldTool <const> = app.tool.id
@@ -377,8 +423,6 @@ dlg:button {
         local mtype <const> = math.type
         local strfmt <const> = string.format
         local strgsub <const> = string.gsub
-
-        local blendModeSrc <const> = BlendMode.SRC
 
         math.randomseed(os.time())
         local minint64 <const> = 0x1000000000000000
@@ -501,20 +545,7 @@ dlg:button {
                                 end
 
                                 if useImagePad then
-                                    -- TODO: Create a separate function for this?
-                                    -- Special case for background layers where
-                                    -- the pad color needs to be opaque for 24 bit RGB?
-                                    local padSpec <const> = ImageSpec {
-                                        width = flat.width + padding * 2,
-                                        height = flat.height + padding * 2,
-                                        colorMode = colorMode,
-                                        transparentColor = alphaIndex
-                                    }
-                                    padSpec.colorSpace = colorSpace
-                                    local padded <const> = Image(padSpec)
-                                    padded:drawImage(flat, Point(padding, padding),
-                                        255, blendModeSrc)
-                                    flat = padded
+                                    flat = padImage(flat, padding, refHex)
                                 end
 
                                 local sepImageFilepath <const> = strfmt(
@@ -557,17 +588,7 @@ dlg:button {
             end
 
             if useImagePad then
-                local padSpec <const> = ImageSpec {
-                    width = flat.width + padding * 2,
-                    height = flat.height + padding * 2,
-                    colorMode = colorMode,
-                    transparentColor = alphaIndex
-                }
-                padSpec.colorSpace = colorSpace
-                local padded <const> = Image(padSpec)
-                padded:drawImage(flat, Point(padding, padding),
-                    255, blendModeSrc)
-                flat = padded
+                flat = padImage(flat, padding, refHex)
             end
 
             local escapedPath <const> = string.gsub(
