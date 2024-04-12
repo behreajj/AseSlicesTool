@@ -131,6 +131,7 @@ A custom export dialog exports slice data to a JSON file. A sample of the format
         "prerelease": "",
         "prNo": 0
     }
+}
 ```
 
 Aseprite does not assign a unique identifier to slices. This script attempts to provide one for each slice in its `properties` field if not already present. Slices are sorted according to this identifier. The file path includes the identifier in hexadecimal. In the example above, `1183714612564447149` may be used to match a slice to a file, where `106d662b2557cfad` is its hexadecimal representation.
