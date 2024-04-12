@@ -1,6 +1,6 @@
 # Aseprite Slice Editor Tool
 
-![Screen Cap](screenCap.png)
+![Screen Cap 1](screenCap.png)
 
 This is a tool to facilitate editing [9-slices](https://en.wikipedia.org/wiki/9-slice_scaling) within the [Aseprite](https://www.aseprite.org/) pixel art editor.
 
@@ -26,9 +26,11 @@ If an error message in Aseprite's console appears, check if the script folder is
 
 ## Usage
 
-A hot key can be assigned to the script by going to `Edit > Keyboard Shortcuts`. The search input box in the top left of the shortcuts dialog can be used to locate the script by its file name.
+A hot key can be assigned to a script by going to `Edit > Keyboard Shortcuts`. The search input box in the top left of the shortcuts dialog can be used to locate the script by its file name.
 
 Once open, holding down the `Alt` or `Option` key and pressing the underlined letter on a button will activate that button via keypress. For example, `Alt+C` will cancel the dialog. See the screen capture above.
+
+### Edit Slices
 
 The features of this dialog, per each button, are:
 - **All**: Selects all the sprite's slices.
@@ -58,3 +60,81 @@ All nudge buttons try to match the slice's top-left corner to the slice grid whe
 To nudge a slice inset or pivot, check the appropriate boxes beneath the WASD keys. Pivots may go outside the slice's bounds; insets may not.
 
 Order-sensitive functions, like rename and color mix, sort slices according to the y coordinate, followed by the x, followed by the slice name. The frame to slice conversion function sorts by a layer's local stack index, then by name.
+
+### Export Slices
+
+![Screen Cap](screenCap2.png)
+
+A custom export dialog exports slice data to a JSON file. A sample of the format is as follows:
+
+```json
+{
+    "files": [
+        {
+            "frame": 0,
+            "id": 1183714612564447149,
+            "path": "path\\to\\demo_106d662b2557cfad_0.png"
+        }
+    ],
+    "slices": [
+        {
+            "name": "Slice 0004",
+            "color": {
+                "r": 249,
+                "g": 127,
+                "b": 88,
+                "a": 255
+            },
+            "data": null,
+            "bounds": {
+                "topLeft": {
+                    "x": 211,
+                    "y": 7
+                },
+                "size": {
+                    "x": 64,
+                    "y": 64
+                }
+            },
+            "center": {
+                "topLeft": {
+                    "x": 4,
+                    "y": 4
+                },
+                "size": {
+                    "x": 56,
+                    "y": 56
+                }
+            },
+            "pivot": {
+                "x": 32,
+                "y": 32
+            },
+            "properties": {
+                "id": 1183714612564447149
+            }
+        }
+    ],
+    "apiVersion": 27,
+    "frameBaseIndex": 1,
+    "padding": 1,
+    "scale": 2,
+    "space": {
+        "bounds": "global",
+        "center": "local",
+        "pivot": "local"
+    },
+    "version": {
+        "major": 1,
+        "minor": 3,
+        "patch": 6,
+        "prerelease": "",
+        "prNo": 0
+    }
+```
+
+Aseprite does not assign a unique identifier number to slices. This script attempts to provide one for each slice in its `properties` field.
+
+Slice names cannot be used as unique identifiers. Aseprite does no validation on strings provided to names. That means a name can be empty or include characters that would invalidate a file path if the name were included, such as `.` or `\` (depending on operating system).
+
+As mentioned at the top, a slice may also have `fromFrame` and `toFrame` fields in its properties if it was created with the edit slices dialog. All frame indices begin at zero, not one. The sprite's `frameBaseIndex` is given at the bottom. To reiterate, the Lua scripting API does not have access to slice frame data, so it cannot be included.

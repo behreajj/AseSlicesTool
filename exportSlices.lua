@@ -7,7 +7,7 @@ local packetFormat <const> = table.concat({
 local sliceFormat <const> = table.concat({
     "{\"name\":\"%s\"",
     "\"color\":%s",
-    "\"data\":%s",
+    "\"data\":\"%s\"",
     "\"bounds\":%s",
     "\"center\":%s",
     "\"pivot\":%s",
@@ -499,6 +499,9 @@ dlg:button {
                                 end
 
                                 if useImagePad then
+                                    -- TODO: Create a separate function for this?
+                                    -- Special case for background layers where
+                                    -- the pad color needs to be opaque for 24 bit RGB?
                                     local padSpec <const> = ImageSpec {
                                         width = flat.width + padding * 2,
                                         height = flat.height + padding * 2,
