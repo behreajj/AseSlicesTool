@@ -133,8 +133,12 @@ A custom export dialog exports slice data to a JSON file. A sample of the format
     }
 ```
 
-Aseprite does not assign a unique identifier number to slices. This script attempts to provide one for each slice in its `properties` field.
+Aseprite does not assign a unique identifier to slices. This script attempts to provide one for each slice in its `properties` field if not already present. Slices are sorted according to this identifier. The file path includes the identifier in hexadecimal. In the example above, `1183714612564447149` may be used to match a slice to a file, where `106d662b2557cfad` is its hexadecimal representation.
 
-Slice names cannot be used as unique identifiers. Aseprite does no validation on strings provided to names. That means a name can be empty or include characters that would invalidate a file path if the name were included, such as `.` or `\` (depending on operating system).
+Slice names cannot always be relied on as unique identifiers. Aseprite does no validation on strings provided to names. A name can be empty, can be a duplicate of another slice's name, or can include characters that would invalidate a file path were it included. This script performs no extra validation measures on slice names.
 
-As mentioned at the top, a slice may also have `fromFrame` and `toFrame` fields in its properties if it was created with the edit slices dialog. All frame indices begin at zero, not one. The sprite's `frameBaseIndex` is given at the bottom. To reiterate, the Lua scripting API does not have access to slice frame data, so it cannot be included.
+When present, custom user data is enclosed in quotation marks, `"`. No attempt is made to escape characters or otherwise validate the data.
+
+As mentioned at the top, a slice may also have `fromFrame` and `toFrame` fields in its properties if it was created with the edit slices dialog. All frame indices begin at zero, not one. The sprite's `frameBaseIndex` is given at the bottom. As mentioned before, the Lua scripting API does not have access to internal slice frame data, so the data cannot be included.
+
+When padded, the pad color used is the image's transparent color. The scaling algorithm used defaults to nearest neighbor.
