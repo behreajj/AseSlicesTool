@@ -378,6 +378,8 @@ dlg:button {
         local strfmt <const> = string.format
         local strgsub <const> = string.gsub
 
+        local blendModeSrc <const> = BlendMode.SRC
+
         math.randomseed(os.time())
         local minint64 <const> = 0x1000000000000000
         local maxint64 <const> = 0x7fffffffffffffff
@@ -510,7 +512,8 @@ dlg:button {
                                     }
                                     padSpec.colorSpace = colorSpace
                                     local padded <const> = Image(padSpec)
-                                    padded:drawImage(flat, Point(padding, padding))
+                                    padded:drawImage(flat, Point(padding, padding),
+                                        255, blendModeSrc)
                                     flat = padded
                                 end
 
@@ -562,7 +565,8 @@ dlg:button {
                 }
                 padSpec.colorSpace = colorSpace
                 local padded <const> = Image(padSpec)
-                padded:drawImage(flat, Point(padding, padding))
+                padded:drawImage(flat, Point(padding, padding),
+                    255, blendModeSrc)
                 flat = padded
             end
 
