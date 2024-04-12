@@ -7,7 +7,7 @@ local packetFormat <const> = table.concat({
 local sliceFormat <const> = table.concat({
     "{\"name\":\"%s\"",
     "\"color\":%s",
-    "\"data\":\"%s\"",
+    "\"data\":%s",
     "\"bounds\":%s",
     "\"center\":%s",
     "\"pivot\":%s",
@@ -149,7 +149,7 @@ local function sliceToJson(
     local userDataVrf = "null"
     local userData <const> = slice.data
     if userData and #userData > 0 then
-        userDataVrf = userData
+        userDataVrf = string.format("\"%s\"", userData)
     end
 
     local propsStr <const> = propsToJson(slice.properties)
@@ -517,7 +517,7 @@ dlg:button {
                                     flat = padded
                                 end
 
-                                local sepImageFilepath = strfmt(
+                                local sepImageFilepath <const> = strfmt(
                                     "%s_%s_%d.%s",
                                     imagePrefix,
                                     idSliceStr,
