@@ -196,6 +196,44 @@ local function versionToJson(version)
         version.prereleaseNumber)
 end
 
+---@param a Slice
+---@param b Slice
+---@return boolean
+local function boundsComparator(a, b)
+    local aBounds <const> = a.bounds or Rectangle(0, 0, 0, 0)
+    local bBounds <const> = b.bounds or Rectangle(0, 0, 0, 0)
+    if aBounds.y == bBounds.y then
+        return aBounds.x < bBounds.x
+    end
+    return aBounds.y < bBounds.y
+end
+
+---@param a Slice
+---@param b Slice
+---@return boolean
+local function idComparator(a, b)
+    return a.properties["id"] < b.properties["id"]
+end
+
+---@param a Slice
+---@param b Slice
+---@return boolean
+local function nameComparator(a, b)
+    return a.name < b.name
+end
+
+---@param a Slice
+---@param b Slice
+---@return boolean
+local function pivotComparator(a, b)
+    local aPivot <const> = a.pivot or Point(0, 0)
+    local bPivot <const> = b.pivot or Point(0, 0)
+    if aPivot.y == bPivot.y then
+        return aPivot.x < bPivot.x
+    end
+    return aPivot.y < bPivot.y
+end
+
 local dlg <const> = Dialog { title = "Export Slices" }
 
 dlg:combobox {
@@ -243,6 +281,15 @@ dlg:color {
 }
 
 dlg:separator { id = "metaParamsSep" }
+
+dlg:combobox {
+    id = "order",
+    label = "Order:",
+    option = "ID",
+    options = { "BOUNDS", "ID", "NAME", "PIVOT" }
+}
+
+dlg:newrow { always = false }
 
 dlg:combobox {
     id = "boundsSpace",
@@ -315,6 +362,7 @@ dlg:button {
         local scale <const> = args.scale --[[@as integer]]
         local padding <const> = args.padding --[[@as integer]]
 
+        local order <const> = args.order --[[@as string]]
         local boundsSpace <const> = args.boundsSpace --[[@as string]]
         local insetSpace <const> = args.insetSpace --[[@as string]]
         local pivotSpace <const> = args.pivotSpace --[[@as string]]
@@ -436,7 +484,7 @@ dlg:button {
             while h < lenTrgSlices do
                 h = h + 1
                 local slice <const> = trgSlices[h]
-                sortedSlices[h] = trgSlices[h]
+                sortedSlices[h] = slice
 
                 -- Correct id and name in first loop so you have
                 -- the option to sort by name, sort by id, etc.
@@ -453,9 +501,15 @@ dlg:button {
             end
         end)
 
-        table.sort(sortedSlices, function(a, b)
-            return a.properties["id"] < b.properties["id"]
-        end)
+        local comparator = idComparator
+        if order == "BOUNDS" then
+            comparator = boundsComparator
+        elseif order == "NAME" then
+            comparator = nameComparator
+        elseif order == "PIVOT" then
+            comparator = pivotComparator
+        end
+        table.sort(sortedSlices, comparator)
 
         local spritePalettes <const> = sprite.palettes
         local lenSpritePalettes <const> = #spritePalettes
