@@ -600,18 +600,23 @@ dlg:button {
                     local trgSlice <const> = sprite:newSlice(trgBounds)
                     duplicates[#duplicates + 1] = trgSlice
 
-                    local fromFrame = actFrIdx - 1
+                    local fromFrIdx = actFrIdx - 1
                     if srcSlice.properties["fromFrame"] then
-                        fromFrame = srcSlice.properties["fromFrame"] --[[@as integer]]
+                        fromFrIdx = srcSlice.properties["fromFrame"] --[[@as integer]]
                     end
 
-                    local toFrame = actFrIdx - 1
+                    local toFrIdx = actFrIdx - 1
                     if srcSlice.properties["toFrame"] then
-                        fromFrame = srcSlice.properties["toFrame"] --[[@as integer]]
+                        fromFrIdx = srcSlice.properties["toFrame"] --[[@as integer]]
                     end
 
-                    trgSlice.properties["fromFrame"] = fromFrame
-                    trgSlice.properties["toFrame"] = toFrame
+                    -- Swap invalid from and to frames.
+                    if toFrIdx < fromFrIdx then
+                        fromFrIdx, toFrIdx = toFrIdx, fromFrIdx
+                    end
+
+                    trgSlice.properties["fromFrame"] = fromFrIdx
+                    trgSlice.properties["toFrame"] = toFrIdx
 
                     local srcCenter <const> = srcSlice.center
                     if srcCenter and srcCenter ~= nil then
