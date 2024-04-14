@@ -523,7 +523,7 @@ dlg:button {
             text = {
                 "Are you sure you want to copy these slices?",
                 "Custom data and properties will NOT be copied.",
-                "A slice's frame cannot be copied."
+                "A slice's frame data cannot be copied."
             },
             buttons = { "&YES", "&NO" }
         }
