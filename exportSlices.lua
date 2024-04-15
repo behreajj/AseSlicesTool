@@ -1,3 +1,8 @@
+--[[To see how 9-slice is formatted in other engines:
+Unity https://docs.unity3d.com/Manual/9SliceSprites.html
+Godot https://docs.godotengine.org/en/3.0/classes/class_ninepatchrect.html
+]]
+
 local packetFormat <const> = table.concat({
     "{\"frame\":%d",
     "\"id\":%d",
