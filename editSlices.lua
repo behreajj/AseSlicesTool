@@ -318,6 +318,7 @@ local nudgeStep <const> = 1
 local displayMoveChecks <const> = true
 local wSliceMin <const> = 3
 local hSliceMin <const> = 3
+local useColorInvert <const> = true
 
 if app.preferences then
     local newFilePrefs <const> = app.preferences.new_file
@@ -504,8 +505,6 @@ dlg:button {
     text = "COP&Y",
     focus = false,
     onclick = function()
-        local useColorInvert <const> = true
-
         local sprite <const> = app.sprite
         if not sprite then return end
 
