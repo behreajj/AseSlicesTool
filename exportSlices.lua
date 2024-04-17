@@ -24,7 +24,6 @@ local jsonFormat <const> = table.concat({
     "\"slices\":[%s]",
     "\"apiVersion\":%d",
     "\"frameBaseIndex\":%d",
-    "\"padColor\":%s",
     "\"padding\":%d",
     "\"scale\":%d",
     "\"space\":{\"bounds\":\"%s\",\"center\":\"%s\",\"pivot\":\"%s\"}",
@@ -434,10 +433,6 @@ dlg:button {
         local useImageResize <const> = scale > 1
         local useImagePad <const> = padding > 0
 
-        local rPad = 0
-        local gPad = 0
-        local bPad = 0
-        local aPad = 0
         local refHex = alphaIndex
         if useImagePad then
             local padColor <const> = args.padColor --[[@as Color]]
@@ -449,28 +444,10 @@ dlg:button {
                     local sa <const> = padColor.alpha
                     local gray <const> = (sr * 2126 + sg * 7152 + sb * 722) // 10000
                     refHex = (sa << 0x08) | gray
-
-                    rPad = gray
-                    gPad = gray
-                    bPad = gray
-                    aPad = sa
                 elseif colorMode == ColorMode.INDEXED then
                     refHex = padColor.index
-
-                    -- This would be a problem for cases where an indexed
-                    -- sprite contains multiple palettes.
-                    local match <const> = sprite.palettes[1]:getColor(refHex)
-                    rPad = match.red
-                    gPad = match.green
-                    bPad = match.blue
-                    aPad = match.alpha
                 elseif colorMode == ColorMode.RGB then
                     refHex = padColor.rgbaPixel
-
-                    rPad = padColor.red
-                    gPad = padColor.green
-                    bPad = padColor.blue
-                    aPad = padColor.alpha
                 end
             end
         end
@@ -711,7 +688,6 @@ dlg:button {
                 table.concat(sliceStrs, ","),
                 apiVersion,
                 frBaseIdx,
-                colorToJson(rPad, gPad, bPad, aPad),
                 padding,
                 scale,
                 useGlobalBounds and "global" or "local",
