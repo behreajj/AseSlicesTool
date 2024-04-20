@@ -318,6 +318,7 @@ local nudgeStep <const> = 1
 local displayMoveChecks <const> = true
 local wSliceMin <const> = 3
 local hSliceMin <const> = 3
+local enableCopyWarning <const> = false
 local useColorInvert <const> = true
 
 if app.preferences then
@@ -517,18 +518,20 @@ dlg:button {
             return
         end
 
-        local response <const> = app.alert {
-            title = "Warning",
-            text = {
-                "Are you sure you want to copy these slices?",
-                "Custom data and properties will NOT be copied.",
-                "A slice's frame data cannot be copied."
-            },
-            buttons = { "&YES", "&NO" }
-        }
-        if response == 2 then
-            app.tool = oldTool
-            return
+        if enableCopyWarning then
+            local response <const> = app.alert {
+                title = "Warning",
+                text = {
+                    "Are you sure you want to copy these slices?",
+                    "Custom data and properties will NOT be copied.",
+                    "A slice's frame data cannot be copied."
+                },
+                buttons = { "&YES", "&NO" }
+            }
+            if response == 2 then
+                app.tool = oldTool
+                return
+            end
         end
 
         local slices <const> = range.slices

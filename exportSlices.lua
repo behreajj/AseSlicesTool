@@ -520,6 +520,8 @@ dlg:button {
         local spritePalettes <const> = sprite.palettes
         local lenSpritePalettes <const> = #spritePalettes
 
+        -- TODO: Should the export script track used frames and
+        -- include an array of their durations?
         local spriteFrames <const> = sprite.frames
         local lenSpriteFrames <const> = #spriteFrames
 
