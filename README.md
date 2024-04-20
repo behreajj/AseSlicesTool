@@ -117,12 +117,6 @@ A custom export dialog exports slice data to a JSON file. A sample of the format
     ],
     "apiVersion": 27,
     "frameBaseIndex": 1,
-    "padColor": {
-        "r": 0,
-        "g": 0,
-        "b": 0,
-        "a": 0
-    },
     "padding": 1,
     "scale": 2,
     "space": {
