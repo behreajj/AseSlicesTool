@@ -71,6 +71,7 @@ A custom export dialog exports slice data to a JSON file. A sample of the format
 {
     "files": [
         {
+            "duration": 83,
             "frame": 0,
             "id": 1183714612564447149,
             "path": "path\\to\\demo_106d662b2557cfad_0.png"

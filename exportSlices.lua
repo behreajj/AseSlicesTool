@@ -4,7 +4,8 @@ Godot https://docs.godotengine.org/en/3.0/classes/class_ninepatchrect.html
 ]]
 
 local packetFormat <const> = table.concat({
-    "{\"frame\":%d",
+    "{\"duration\":%d",
+    "\"frame\":%d",
     "\"id\":%d",
     "\"path\":\"%s\"}"
 }, ",")
@@ -471,6 +472,7 @@ dlg:button {
 
         -- Cache global methods used in for loops to local.
         local abs <const> = math.abs
+        local floor <const> = math.floor
         local max <const> = math.max
         local min <const> = math.min
         local rng <const> = math.random
@@ -520,8 +522,6 @@ dlg:button {
         local spritePalettes <const> = sprite.palettes
         local lenSpritePalettes <const> = #spritePalettes
 
-        -- TODO: Should the export script track used frames and
-        -- include an array of their durations?
         local spriteFrames <const> = sprite.frames
         local lenSpriteFrames <const> = #spriteFrames
 
@@ -618,8 +618,17 @@ dlg:button {
                                     imageSuffix)
                                 local escapedPath <const> = strgsub(
                                     sepImageFilepath, "\\", "\\\\")
+
+                                local frObj <const> = spriteFrames[frIdx]
+                                local frDur <const> = frObj.duration
+                                local millis <const> = floor(frDur * 1000.0 + 0.5)
+
                                 local fileStr <const> = strfmt(
-                                    packetFormat, frIdx - 1, idSlice, escapedPath)
+                                    packetFormat,
+                                    millis,
+                                    frIdx - 1,
+                                    idSlice,
+                                    escapedPath)
                                 fileStrs[#fileStrs + 1] = fileStr
 
                                 flat:saveAs {
@@ -653,10 +662,13 @@ dlg:button {
                 flat = padImage(flat, padding, refHex)
             end
 
+            local frDur <const> = actFrObj.duration
+            local millis <const> = math.floor(frDur * 1000.0 + 0.5)
+
             local escapedPath <const> = string.gsub(
                 imageFilePath, "\\", "\\\\")
             local packetStr <const> = string.format(
-                packetFormat, actFrIdx - 1, -1, escapedPath)
+                packetFormat, millis, actFrIdx - 1, -1, escapedPath)
             fileStrs[#fileStrs + 1] = packetStr
 
             flat:saveAs {
