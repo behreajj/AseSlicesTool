@@ -103,7 +103,6 @@ local function tlComparator(left, right)
     local aBounds <const> = left.bounds
     local bBounds <const> = right.bounds
     if aBounds and bBounds then
-        -- TODO: Might be nice to sort by tl + pivot, if pivot is set.
         local ay <const> = aBounds.y
         local by <const> = bBounds.y
         if ay == by then
@@ -215,11 +214,22 @@ local function translateSlices(
                     if xTrg >= 0 and yTrg >= 0
                         and xBrTrg < wSprite and yBrTrg < hSprite then
                         slice.bounds = Rectangle(xTrg, yTrg, wTrg, hTrg)
-                    end
-                end
-            end
-        end)
-    end
+
+                        -- TODO: Option to move content of slice as well? Maybe
+                        -- place this in a separate loop before bounds are moved?
+                        -- sprite.selection = Selection(Rectangle(xSrc, ySrc, wTrg, hTrg))
+                        -- app.command.MoveMask {
+                        --     direction = "left",
+                        --     amount = 1,
+                        --     target = "content",
+                        --     units = "pixel",
+                        --     wrap = false
+                        -- }
+                    end -- End bounds contained by sprite
+                end     -- End bounds not nil
+            end         -- End slices loop
+        end)            -- End transaction
+    end                 -- End move bounds check
 
     if movePivot then
         local trsName <const> = string.format("Nudge Pivots (%d, %d)", dx, dy)
@@ -250,9 +260,9 @@ local function translateSlices(
                 local xTrgPiv <const> = xSrcPiv + dx
                 local yTrgPiv <const> = ySrcPiv + dy
                 slice.pivot = Point(xTrgPiv, yTrgPiv)
-            end
-        end)
-    end
+            end -- End slices loop
+        end)    -- End transaction
+    end         -- End move pivot check
 
     if moveInset then
         local insVerif <const> = math.abs(insetAmount)
@@ -299,11 +309,11 @@ local function translateSlices(
                         slice.center = Rectangle(
                             xtlTrgInset, ytlTrgInset,
                             wTrgInset, hTrgInset)
-                    end
-                end
-            end
-        end)
-    end
+                    end -- End inset contained by bounds
+                end     -- End bounds not nil
+            end         -- End slices loop
+        end)            -- End transaction
+    end                 -- End move inset check
 
     app.frame = actFrObj
     app.tool = oldTool

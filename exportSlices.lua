@@ -20,6 +20,9 @@ local sliceFormat <const> = table.concat({
     "\"properties\":{%s}}",
 }, ",")
 
+-- TODO: Include sprite information like its ID and filename.
+-- TODO: Allow export to be run from CLI?
+-- TODO: Support export from multiple sprites?
 local jsonFormat <const> = table.concat({
     "{\"files\":[%s]",
     "\"slices\":[%s]",
