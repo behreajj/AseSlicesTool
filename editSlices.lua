@@ -544,9 +544,14 @@ dlg:button {
             end
         end
 
+        local actFrObj <const> = app.frame or sprite.frames[1]
+        local actFrIdx <const> = actFrObj.frameNumber
+        app.frame = sprite.frames[1]
+
         local slices <const> = range.slices
         local lenSlices <const> = #slices
         if lenSlices < 1 then
+            app.frame = actFrObj
             app.tool = oldTool
             app.alert {
                 title = "Error",
@@ -587,10 +592,6 @@ dlg:button {
                 end
             end
         end
-
-        local actFrObj <const> = app.frame
-        local actFrIdx <const> = actFrObj and actFrObj.frameNumber or 1
-        app.frame = sprite.frames[1]
 
         ---@type Slice[]
         local duplicates <const> = {}
@@ -726,12 +727,12 @@ dlg:button {
             return
         end
 
-        local actFrObj <const> = app.frame
-        app.frame = sprite.frames[1]
+        local actFrObj <const> = app.frame or sprite.frames[1]
 
         local slices <const> = range.slices
         local lenSlices <const> = #slices
         if lenSlices < 1 then
+            app.frame = actFrObj
             app.tool = oldTool
             app.alert {
                 title = "Error",
