@@ -151,7 +151,7 @@ local function translateSlices(
     local abs <const> = math.abs
     local max <const> = math.max
 
-    local actFrObj <const> = app.frame
+    local actFrObj <const> = app.frame or sprite.frames[1]
     app.frame = sprite.frames[1]
 
     if moveBounds then
@@ -379,7 +379,7 @@ dlg:button {
             return
         end
 
-        local actFrObj <const> = app.frame
+        local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
 
         ---@type Slice[]
@@ -419,7 +419,7 @@ dlg:button {
             return
         end
 
-        local actFrObj <const> = app.frame
+        local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
 
         ---@type Slice[]
@@ -492,7 +492,7 @@ dlg:button {
         local oldTool <const> = app.tool.id
         app.tool = "slice"
 
-        local actFrObj <const> = app.frame
+        local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
 
         local range <const> = app.range
@@ -778,8 +778,7 @@ dlg:button {
         local sprite <const> = app.sprite
         if not sprite then return end
 
-        local actFrObj <const> = app.frame
-        if not actFrObj then return end
+        local actFrObj <const> = app.frame or sprite.frames[1]
         local actFrIdx <const> = actFrObj.frameNumber
 
         local tlHidden = true
@@ -1059,7 +1058,7 @@ dlg:button {
                     end
                 end
 
-                local actFrObj <const> = app.frame
+                local actFrObj <const> = app.frame or sprite.frames[1]
                 local actFrIdx <const> = actFrObj and actFrObj.frameNumber or 1
                 app.frame = sprite.frames[1]
 
@@ -1134,7 +1133,7 @@ dlg:button {
 
         local mask <const> = Selection()
 
-        local actFrObj <const> = app.frame
+        local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
 
         local i = 0
@@ -1315,7 +1314,7 @@ dlg:button {
         local wVerif <const> = math.max(wSliceMin, math.abs(width))
         local hVerif <const> = math.max(hSliceMin, math.abs(height))
 
-        local actFrObj <const> = app.frame
+        local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
 
         local abs <const> = math.abs
@@ -1459,7 +1458,7 @@ dlg:button {
         local inset <const> = args.insetAmount --[[@as integer]]
         local insVerif = math.abs(inset)
 
-        local actFrObj <const> = app.frame
+        local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
 
         local abs <const> = math.abs
@@ -1531,7 +1530,7 @@ dlg:button {
         local abs <const> = math.abs
         local max <const> = math.max
 
-        local actFrObj <const> = app.frame
+        local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
 
         if pivotCombo == "TOP_LEFT" then
@@ -1745,7 +1744,7 @@ dlg:button {
         local format <const> = "%s %d"
         local strfmt <const> = string.format
 
-        local actFrObj <const> = app.frame
+        local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
 
         app.transaction("Rename Slices", function()
@@ -1831,7 +1830,7 @@ dlg:button {
             or sOrig <= 0.0
             or sDest <= 0.0
 
-        local actFrObj <const> = app.frame
+        local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
 
         if useRgbLerp then
