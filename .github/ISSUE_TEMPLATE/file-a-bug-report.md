@@ -11,7 +11,7 @@ assignees: ''
 For example, Windows 11.
 
 **Aseprite version**
-The current supported version is 1.3.6.
+The current supported version is 1.3.7.
 
 **Sprite color mode**
 RGB, indexed or grayscale.

@@ -10,7 +10,7 @@ If you are creating a custom [theme](https://aseprite.org/docs/extensions/themes
 
 If you are creating a sprite with many frames, and need slices to record frame references, this script will not help you. A slice's frame data appears in Aseprite's JSON export, but cannot be accessed via Lua script. New slices created by this script are created on frame 1. A `fromFrame` and `toFrame` are assigned to a new slice's `properties`. For more, see these forum threads: [1](https://community.aseprite.org/t/how-do-i-figure-out-which-frame-a-slice-is-on), [2](https://community.aseprite.org/t/problem-with-slices-when-adding-removing-frames), [3](https://community.aseprite.org/t/slices-are-buggy-when-edited-at-different-frames), [4](https://community.aseprite.org/t/is-there-a-way-to-slice-single-frames).
 
-This script was created with Aseprite version 1.3.5 on Windows 10. In the screen shot above, the theme is default dark with 100% UI scaling and 200% screen scaling. Due to the size of the dialog, a theme with 100% scaling is recommended.
+This script was tested with Aseprite version 1.3.7 on Windows 10. In the screen shot above, the theme is default dark with 100% UI scaling and 200% screen scaling. Due to the size of the dialog, a theme with 100% scaling is recommended.
 
 If you would like to report a problem with the script, please see this repo's Issues section. I make no assurances that I will be able to resolve any problems. If you would like more info on running Aseprite in debug mode, see the command line interface (CLI) [documentation](https://aseprite.org/docs/cli/#debug).
 
