@@ -22,12 +22,15 @@ local pivotOptions <const> = {
 local function appendLeaves(layer, array)
     if layer.isVisible then
         if layer.isGroup then
-            local childLayers <const> = layer.layers --[=[@as Layer[]]=]
-            local lenChildLayers <const> = #childLayers
-            local i = 0
-            while i < lenChildLayers do
-                i = i + 1
-                appendLeaves(childLayers[i], array)
+            -- Type annotation causes Github syntax highlighting problems.
+            local childLayers <const> = layer.layers
+            if childLayers then
+                local lenChildLayers <const> = #childLayers
+                local i = 0
+                while i < lenChildLayers do
+                    i = i + 1
+                    appendLeaves(childLayers[i], array)
+                end
             end
         elseif (not layer.isReference) then
             array[#array + 1] = layer
@@ -1539,7 +1542,10 @@ dlg:button {
                 while i < lenSlices do
                     i = i + 1
                     local slice <const> = slices[i]
-                    slice.pivot = Point(0, 0)
+                    local bounds <const> = slice.bounds
+                    if bounds then
+                        slice.pivot = Point(0, 0)
+                    end
                 end
             end)
         elseif pivotCombo == "TOP_CENTER" then
