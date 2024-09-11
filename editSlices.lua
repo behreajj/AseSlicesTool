@@ -217,17 +217,6 @@ local function translateSlices(
                     if xTrg >= 0 and yTrg >= 0
                         and xBrTrg < wSprite and yBrTrg < hSprite then
                         slice.bounds = Rectangle(xTrg, yTrg, wTrg, hTrg)
-
-                        -- TODO: Option to move content of slice as well? Maybe
-                        -- place this in a separate loop before bounds are moved?
-                        -- sprite.selection = Selection(Rectangle(xSrc, ySrc, wTrg, hTrg))
-                        -- app.command.MoveMask {
-                        --     direction = "left",
-                        --     amount = 1,
-                        --     target = "content",
-                        --     units = "pixel",
-                        --     wrap = false
-                        -- }
                     end -- End bounds contained by sprite
                 end     -- End bounds not nil
             end         -- End slices loop
@@ -249,12 +238,12 @@ local function translateSlices(
                     xSrcPiv = srcPivot.x
                     ySrcPiv = srcPivot.y
                 else
-                    local sliceBounds <const> = slice.bounds
-                    if sliceBounds then
-                        local wSlice <const> = sliceBounds.width
-                        local hSlice <const> = sliceBounds.height
+                    local bounds <const> = slice.bounds
+                    if bounds then
+                        local wBounds <const> = max(1, abs(bounds.width))
+                        local hBounds <const> = max(1, abs(bounds.height))
                         local pivPreset <const> = pivotFromPreset(
-                            pivotCombo, wSlice, hSlice)
+                            pivotCombo, wBounds, hBounds)
                         xSrcPiv = pivPreset.x
                         ySrcPiv = pivPreset.y
                     end
@@ -881,8 +870,10 @@ dlg:button {
 
         local wSprite <const> = sprite.width
         local hSprite <const> = sprite.height
-        local alphaIndex <const> = sprite.transparentColor
         local colorMode <const> = sprite.colorMode
+        -- TODO: The transparent color may be greater than 255, which is a
+        -- problem for indexed color mode in some cases.
+        local alphaIndex = sprite.transparentColor
 
         local bkgHex = 0
         app.command.SwitchColors()

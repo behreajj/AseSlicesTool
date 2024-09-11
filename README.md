@@ -137,7 +137,7 @@ A custom export dialog exports slice data to a JSON file. A sample of the format
 
 Aseprite does not assign a unique identifier to slices. This script provides a random 64-bit integer for each slice in its `properties` field if not already present. The file path includes the identifier in hexadecimal. In the example above, `1183714612564447149` may be used to match a slice to a file, where `106d662b2557cfad` is its hexadecimal representation.
 
-Slice names cannot always be relied on as unique identifiers. Aseprite does no validation on strings provided to names. A name can be empty, can be a duplicate of another slice's name, or can include characters that would invalidate a file path were it included. This script performs no extra validation measures on slice names.
+Slice names cannot always be relied on as unique identifiers. Aseprite does no validation on strings provided to names. A name can be empty, can be a duplicate of another slice's name, or can include characters that would invalidate a file path were they included. This script performs no extra validation measures on slice names.
 
 When present, custom user data is enclosed in quotation marks, `"`. No attempt is made to escape characters or otherwise validate the data.
 

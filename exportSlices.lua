@@ -386,6 +386,8 @@ dlg:button {
 
         local spriteSpec <const> = sprite.spec
         local colorMode <const> = spriteSpec.colorMode
+        -- TODO: The transparent color may be greater than 255, which is a
+        -- problem for indexed color mode in some cases.
         local alphaIndex <const> = spriteSpec.transparentColor
         local colorSpace <const> = spriteSpec.colorSpace
 
