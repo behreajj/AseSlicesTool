@@ -186,74 +186,6 @@ local function translateSlices(
             end
         end
 
-        local moveContent = true -- TODO: Replace with an argument.
-        if moveContent then
-            local trsName <const> = string.format("Nudge Content (%d, %d)", dx, dy)
-
-            app.transaction(trsName, function()
-                -- This prevents errors when mask is in a transform preview state.
-                app.command.InvertMask()
-                app.command.InvertMask()
-
-                local oldMask <const> = sprite.selection
-
-                local i = 0
-                while i < lenSlices do
-                    i = i + 1
-                    local slice <const> = slices[i]
-                    local bounds <const> = slice.bounds
-                    if bounds then
-                        local xSrc <const> = bounds.x
-                        local ySrc <const> = bounds.y
-
-                        local xTrg = xSrc + dx
-                        if dxNonZero then
-                            local xGrid <const> = round((xSrc - xGrOff) / xGrScl)
-                            xTrg = xGrOff + (xGrid + dx) * xGrScl
-                        end
-
-                        local yTrg = ySrc + dy
-                        if dyNonZero then
-                            local yGrid <const> = round((ySrc - yGrOff) / yGrScl)
-                            yTrg = yGrOff + (yGrid + dy) * yGrScl
-                        end
-
-                        sprite.selection = Selection(bounds)
-
-                        local xMove <const> = xTrg - xSrc
-                        if xMove ~= 0 then
-                            local xStr <const> = xMove < 0 and "left" or "right"
-                            app.command.MoveMask {
-                                direction = xStr,
-                                quantity = math.abs(xMove),
-                                target = "content",
-                                units = "pixel",
-                                wrap = false,
-                            }
-                        end
-
-                        local yMove <const> = yTrg - ySrc
-                        if yMove ~= 0 then
-                            local yStr <const> = yMove < 0 and "up" or "down"
-                            app.command.MoveMask {
-                                direction = yStr,
-                                quantity = math.abs(yMove),
-                                target = "content",
-                                units = "pixel",
-                                wrap = false,
-                            }
-                        end
-
-                        app.command.InvertMask()
-                        app.command.InvertMask()
-                    end
-                end
-
-                sprite.selection:deselect()
-                sprite.selection = oldMask
-            end)
-        end
-
         local trsName <const> = string.format("Nudge Slices (%d, %d)", dx, dy)
         app.transaction(trsName, function()
             local i = 0
@@ -939,6 +871,8 @@ dlg:button {
         local wSprite <const> = sprite.width
         local hSprite <const> = sprite.height
         local colorMode <const> = sprite.colorMode
+        -- TODO: The transparent color may be greater than 255, which is a
+        -- problem for indexed color mode in some cases.
         local alphaIndex = sprite.transparentColor
 
         local bkgHex = 0
