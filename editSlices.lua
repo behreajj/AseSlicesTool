@@ -155,20 +155,22 @@ local function changeActiveSlice(step)
 
     ---@type Slice[]
     local sortedSpriteSlices <const> = {}
-    local i = 0
-    while i < lenSpriteSlices do
-        i = i + 1
-        local slice <const> = spriteSlices[i]
+    app.transaction("Check Slice IDs", function()
+        local i = 0
+        while i < lenSpriteSlices do
+            i = i + 1
+            local slice <const> = spriteSlices[i]
 
-        local idSlice = slice.properties["id"] --[[@as integer|nil]]
-        if idSlice == nil or (not (type(idSlice) == "number"
-                and mtype(idSlice) == "integer")) then
-            idSlice = rng(minint64, maxint64)
-            slice.properties["id"] = idSlice
+            local idSlice = slice.properties["id"] --[[@as integer|nil]]
+            if idSlice == nil or (not (type(idSlice) == "number"
+                    and mtype(idSlice) == "integer")) then
+                idSlice = rng(minint64, maxint64)
+                slice.properties["id"] = idSlice
+            end
+
+            sortedSpriteSlices[i] = slice
         end
-
-        sortedSpriteSlices[i] = slice
-    end
+    end)
     table.sort(sortedSpriteSlices, tlComparator)
 
     ---@type table<string, integer>
