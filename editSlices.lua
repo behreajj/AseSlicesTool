@@ -202,19 +202,21 @@ local function changeActiveSlice(step)
     local idActive <const> = activeSlice.properties["id"] --[[@as integer]]
     if idActive then
         local indexActive <const> = idToIndex[idActive]
-        -- print(string.format("indexActive: %d", indexActive))
         if indexActive then
             local indexChange <const> = 1 + (step + indexActive - 1)
                 % lenSpriteSlices
-            -- print(string.format("indexAChange: %d", indexChange))
             changeSlice = sortedSpriteSlices[indexChange]
         end
     end
 
-    -- print(string.format("changeSlice: %s", changeSlice.name))
     range.slices = { changeSlice }
 
-    app.frame = actFrObj
+    local toFrIdx <const> = changeSlice.properties["toFrame"] --[[@as integer|nil]]
+    if toFrIdx then
+        app.frame = sprite.frames[1 + toFrIdx]
+    else
+        app.frame = actFrObj
+    end
     app.tool = oldTool
     app.refresh()
 end
