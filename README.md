@@ -61,7 +61,7 @@ All nudge buttons try to match the slice's top-left corner to the slice grid whe
 
 To nudge a slice inset or pivot, check the appropriate boxe beneath the WASD keys. Pivots may go outside the slice's bounds; insets may not.
 
-Order-sensitive functions, like rename and color mix, sort slices according to the y coordinate, followed by the x, followed by the slice name. The frame to slice conversion function sorts by a layer's local stack index, then by name.
+Order-sensitive functions, like rename and color mix, sort slices according to the `toFrame` custom property (if any), followed by the y coordinate, followed by the x, followed by the slice name. The frame to slice conversion function sorts by a layer's local stack index, then by name.
 
 ### Export Slices
 

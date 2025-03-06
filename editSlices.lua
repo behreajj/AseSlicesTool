@@ -105,20 +105,27 @@ end
 ---@param right Slice
 ---@return boolean
 local function tlComparator(left, right)
-    local aBounds <const> = left.bounds
-    local bBounds <const> = right.bounds
-    if aBounds and bBounds then
-        local ay <const> = aBounds.y
-        local by <const> = bBounds.y
-        if ay == by then
-            local ax <const> = aBounds.x
-            local bx <const> = bBounds.x
-            if ax == bx then
-                return left.name < right.name
+    local aToFrame <const> = left.properties["toFrame"] --[[@as integer|nil]]
+    local bToFrame <const> = right.properties["toFrame"] --[[@as integer|nil]]
+    if aToFrame and bToFrame then
+        if aToFrame == bToFrame then
+            local aBounds <const> = left.bounds
+            local bBounds <const> = right.bounds
+            if aBounds and bBounds then
+                local ay <const> = aBounds.y
+                local by <const> = bBounds.y
+                if ay == by then
+                    local ax <const> = aBounds.x
+                    local bx <const> = bBounds.x
+                    if ax == bx then
+                        return left.name < right.name
+                    end
+                    return ax < bx
+                end
+                return ay < by
             end
-            return ax < bx
         end
-        return ay < by
+        return aToFrame < bToFrame
     end
     return left.name < right.name
 end
