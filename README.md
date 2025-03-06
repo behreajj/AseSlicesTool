@@ -36,6 +36,8 @@ The features of this dialog, per each button, are:
 - **All**: Selects all the sprite's slices.
 - **Mask**: Gets the slices entirely contained by the selection mask.
 - **None**: Deselects all the sprite's slices.
+- **Next**: Selects the next slice.
+- **Previous**: Selects the previous slice.
 - **Copy**: Partially copies the selected slices, avoiding custom user data and properties. Inverts the slices' colors. Warns before execution.
 - **Delete**: Deletes the selected slices. Warns before execution.
 - **Frame**: Creates multiple slices from the cels in the active frame.

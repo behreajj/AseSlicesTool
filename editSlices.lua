@@ -2,6 +2,8 @@
     created. This reference cannot be accessed via Lua script.
 ]]
 
+-- TODO: Option to import slices to a sprite where each slice is a new frame?
+
 local pivotOptions <const> = {
     "TOP_LEFT",
     "TOP_CENTER",
@@ -119,6 +121,92 @@ local function tlComparator(left, right)
         return ay < by
     end
     return left.name < right.name
+end
+
+---@param step integer
+local function changeActiveSlice(step)
+    local sprite <const> = app.sprite
+    if not sprite then return end
+
+    local oldTool <const> = app.tool.id
+    app.tool = "slice"
+
+    local range <const> = app.range
+    if range.sprite ~= sprite then
+        app.tool = oldTool
+        return
+    end
+
+    local spriteSlices <const> = sprite.slices
+    local lenSpriteSlices <const> = #spriteSlices
+    if lenSpriteSlices < 1 then
+        app.tool = oldTool
+        return
+    end
+
+    local actFrObj <const> = app.frame or sprite.frames[1]
+    app.frame = sprite.frames[1]
+
+    local rng <const> = math.random
+    local mtype <const> = math.type
+    math.randomseed(os.time())
+    local minint64 <const> = 0x1000000000000000
+    local maxint64 <const> = 0x7fffffffffffffff
+
+    ---@type Slice[]
+    local sortedSlices <const> = {}
+    local i = 0
+    while i < lenSpriteSlices do
+        i = i + 1
+        local slice <const> = spriteSlices[i]
+
+        local idSlice = slice.properties["id"] --[[@as integer|nil]]
+        if idSlice == nil or (not (type(idSlice) == "number"
+                and mtype(idSlice) == "integer")) then
+            idSlice = rng(minint64, maxint64)
+            slice.properties["id"] = idSlice
+        end
+
+        sortedSlices[i] = slice
+    end
+
+    table.sort(sortedSlices, tlComparator)
+
+    ---@type table<string, integer>
+    local idToIndex <const> = {}
+    local j = 0
+    while j < lenSpriteSlices do
+        j = j + 1
+        local slice <const> = sortedSlices[j]
+        local idSlice <const> = slice.properties["id"] --[[@as integer]]
+        idToIndex[idSlice] = j
+    end
+
+    local rangeSlices <const> = range.slices
+    local lenRangeSlices <const> = #rangeSlices
+    local activeSlice <const> = lenRangeSlices >= 1
+        and rangeSlices[1]
+        or spriteSlices[1]
+
+    local changeSlice = activeSlice
+    local idActive <const> = activeSlice.properties["id"] --[[@as integer]]
+    if idActive then
+        local indexActive <const> = idToIndex[idActive]
+        -- print(string.format("indexActive: %d", indexActive))
+        if indexActive then
+            local indexChange <const> = 1 + (step + indexActive - 1)
+                % lenSpriteSlices
+            -- print(string.format("indexAChange: %d", indexChange))
+            changeSlice = sortedSlices[indexChange]
+        end
+    end
+
+    -- print(string.format("changeSlice: %s", changeSlice.name))
+    range.slices = { changeSlice }
+
+    app.frame = actFrObj
+    app.tool = oldTool
+    app.refresh()
 end
 
 ---@param dx integer
@@ -497,6 +585,28 @@ dlg:button {
         app.frame = actFrObj
         app.tool = oldTool
         app.refresh()
+    end
+}
+
+dlg:newrow { always = false }
+
+dlg:button {
+    id = "prevButton",
+    text = "&<",
+    focus = false,
+    visible = true,
+    onclick = function()
+        changeActiveSlice(-1)
+    end
+}
+
+dlg:button {
+    id = "nextButton",
+    text = "&>",
+    focus = false,
+    visible = true,
+    onclick = function()
+        changeActiveSlice(1)
     end
 }
 
@@ -893,14 +1003,13 @@ dlg:button {
         end
         app.command.SwitchColors()
 
-        -- The problem with offsetting by the frame base index is that it could
-        -- be negative.
+        -- Frame base index could be negative.
         local frIdxDisplay = actFrIdx - 1
         local insVerif = math.abs(inset)
         local xtlInset <const> = insVerif
         local ytlInset <const> = insVerif
-        -- This could layer name instead of or in addition to number, but the
-        -- problem is that layer names are not unique identifiers.
+        -- This could be layer name instead of or in addition to number,
+        -- but layer names are not unique identifiers.
         local format <const> = "%s Fr%d No%d"
 
         local strfmt <const> = string.format
