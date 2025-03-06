@@ -154,7 +154,7 @@ local function changeActiveSlice(step)
     local maxint64 <const> = 0x7fffffffffffffff
 
     ---@type Slice[]
-    local sortedSlices <const> = {}
+    local sortedSpriteSlices <const> = {}
     local i = 0
     while i < lenSpriteSlices do
         i = i + 1
@@ -167,26 +167,36 @@ local function changeActiveSlice(step)
             slice.properties["id"] = idSlice
         end
 
-        sortedSlices[i] = slice
+        sortedSpriteSlices[i] = slice
     end
-
-    table.sort(sortedSlices, tlComparator)
+    table.sort(sortedSpriteSlices, tlComparator)
 
     ---@type table<string, integer>
     local idToIndex <const> = {}
     local j = 0
     while j < lenSpriteSlices do
         j = j + 1
-        local slice <const> = sortedSlices[j]
+        local slice <const> = sortedSpriteSlices[j]
         local idSlice <const> = slice.properties["id"] --[[@as integer]]
         idToIndex[idSlice] = j
     end
 
+    local activeSlice = sortedSpriteSlices[1]
     local rangeSlices <const> = range.slices
     local lenRangeSlices <const> = #rangeSlices
-    local activeSlice <const> = lenRangeSlices >= 1
-        and rangeSlices[1]
-        or sortedSlices[1]
+    if lenRangeSlices > 1 then
+        ---@type Slice[]
+        local sortedRangeSlices <const> = {}
+        local k = 0
+        while k < lenRangeSlices do
+            k = k + 1
+            sortedRangeSlices[k] = rangeSlices[k]
+        end
+        table.sort(sortedRangeSlices, tlComparator)
+        activeSlice = sortedRangeSlices[1]
+    elseif lenRangeSlices == 1 then
+        activeSlice = rangeSlices[1]
+    end
 
     local changeSlice = activeSlice
     local idActive <const> = activeSlice.properties["id"] --[[@as integer]]
@@ -197,7 +207,7 @@ local function changeActiveSlice(step)
             local indexChange <const> = 1 + (step + indexActive - 1)
                 % lenSpriteSlices
             -- print(string.format("indexAChange: %d", indexChange))
-            changeSlice = sortedSlices[indexChange]
+            changeSlice = sortedSpriteSlices[indexChange]
         end
     end
 
