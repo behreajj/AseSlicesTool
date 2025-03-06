@@ -186,7 +186,7 @@ local function changeActiveSlice(step)
     local lenRangeSlices <const> = #rangeSlices
     local activeSlice <const> = lenRangeSlices >= 1
         and rangeSlices[1]
-        or spriteSlices[1]
+        or sortedSlices[1]
 
     local changeSlice = activeSlice
     local idActive <const> = activeSlice.properties["id"] --[[@as integer]]
