@@ -995,9 +995,9 @@ dlg:button {
         local wSprite <const> = sprite.width
         local hSprite <const> = sprite.height
         local colorMode <const> = sprite.colorMode
-        -- TODO: The transparent color may be greater than 255, which is a
-        -- problem for indexed color mode in some cases.
-        local alphaIndex = sprite.transparentColor
+        local alphaIndex <const> = sprite.transparentColor
+        local alphaIndexVerif <const> = (colorMode == ColorMode.INDEXED
+            and alphaIndex > 255) and 0 or alphaIndex
 
         local bkgHex = 0
         app.command.SwitchColors()
@@ -1061,7 +1061,7 @@ dlg:button {
                         local celPos <const> = cel.position
                         local celImage <const> = cel.image
                         local ref <const> = layer.isBackground
-                            and bkgHex or alphaIndex
+                            and bkgHex or alphaIndexVerif
                         local trimRect <const> = celImage:shrinkBounds(ref)
                         xtlCel = celPos.x + trimRect.x
                         ytlCel = celPos.y + trimRect.y
