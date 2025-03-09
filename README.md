@@ -10,7 +10,7 @@ If you are creating a custom [theme](https://aseprite.org/docs/extensions/themes
 
 If you are creating a sprite with many frames, and need slices to record frame references, this script will not help you. A slice's frame data appears in Aseprite's JSON export, but cannot be accessed via Lua script. New slices created by this script are created on frame 1. A `fromFrame` and `toFrame` are assigned to a new slice's `properties`. For more, see these forum threads: [1](https://community.aseprite.org/t/how-do-i-figure-out-which-frame-a-slice-is-on), [2](https://community.aseprite.org/t/problem-with-slices-when-adding-removing-frames), [3](https://community.aseprite.org/t/slices-are-buggy-when-edited-at-different-frames), [4](https://community.aseprite.org/t/is-there-a-way-to-slice-single-frames).
 
-This script was tested with Aseprite version 1.3.7 on Windows 10. In the screen shot above, the theme is default dark with 100% UI scaling and 200% screen scaling. Due to the size of the dialog, a theme with 100% scaling is recommended.
+This script was tested with Aseprite version 1.3.14-beta1 on Windows 11. In the screen shot above, the theme is default dark with 100% UI scaling and 200% screen scaling. Due to the size of the dialog, a theme with 100% scaling is recommended.
 
 If you would like to report a problem with the script, please see this repo's Issues section. I make no assurances that I will be able to resolve any problems. If you would like more info on running Aseprite in debug mode, see the command line interface (CLI) [documentation](https://aseprite.org/docs/cli/#debug).
 
@@ -53,15 +53,20 @@ The features of this dialog, per each button, are:
 - **Rename**: Sets a slice's name to the provided string. If multiple slices are selected, appends a number after the string.
 - **Color**: Recolors the selected slices per a mix between two given colors. Color mixing is done in HSL unless one of the colors is gray. When HSL is used, the hue is mixed counter clockwise.
 - **Swap**: Swaps the origin and destination color.
+- **Options**: Opens the options child dialog.
 - **Cancel**: Closes the dialog.
 
 Both resize and nudge try to avoid creating a slice that is outside the sprite's bounds.
 
-All nudge buttons try to match the slice's top-left corner to the slice grid when snap to grid is enabled.
+All nudge buttons try to match the slice's top-left corner to the grid when snap to grid is enabled.
 
 To nudge a slice inset or pivot, check the appropriate boxe beneath the WASD keys. Pivots may go outside the slice's bounds; insets may not.
 
 Order-sensitive functions, like rename and color mix, sort slices according to the y coordinate, followed by the x, followed by the slice name. The frame to slice conversion function sorts by a layer's local stack index, then by name.
+
+![Screen Cap 3](screenCap3.png)
+
+Use the options menu to toggle the visibility of button groups. This allows you to declutter the dialog and reduce its screen real estate for functions you don't use.
 
 ### Export Slices
 

@@ -18,6 +18,26 @@ local pivotOptions <const> = {
     "BOTTOM_RIGHT",
 }
 
+local defaults <const> = {
+    showSelectButtons = true,
+    showFocusButtons = false,
+    showEditButtons = true,
+    showConvertButtons = true,
+    showNudgeButtons = true,
+    showSizeButtons = true,
+    showInsetButtons = true,
+    showPivotButtons = true,
+    showRecolorButtons = true,
+    showRenameButtons = true,
+
+    showNudgeChecks = true,
+    useColorInvert = true,
+    enableCopyWarning = false,
+    nudgeStep = 1,
+    wSliceMin = 3,
+hSliceMin = 3,
+}
+
 ---@param layer Layer
 ---@param array Layer[]
 ---@return Layer[]
@@ -61,28 +81,28 @@ local function lerpAngleCcw(orig, dest, t, range)
     end
 end
 
----@param pivotCombo string
+---@param pivotPreset string
 ---@param w integer
 ---@param h integer
 ---@return Point
-local function pivotFromPreset(pivotCombo, w, h)
-    if pivotCombo == "TOP_LEFT" then
+local function pivotFromPreset(pivotPreset, w, h)
+    if pivotPreset == "TOP_LEFT" then
         return Point(0, 0)
-    elseif pivotCombo == "TOP_CENTER" then
+    elseif pivotPreset == "TOP_CENTER" then
         return Point(w // 2, 0)
-    elseif pivotCombo == "TOP_RIGHT" then
+    elseif pivotPreset == "TOP_RIGHT" then
         return Point(w - 1, 0)
-    elseif pivotCombo == "CENTER_LEFT" then
+    elseif pivotPreset == "CENTER_LEFT" then
         return Point(0, h // 2)
-    elseif pivotCombo == "CENTER" then
+    elseif pivotPreset == "CENTER" then
         return Point(w // 2, h // 2)
-    elseif pivotCombo == "CENTER_RIGHT" then
+    elseif pivotPreset == "CENTER_RIGHT" then
         return Point(w - 1, h // 2)
-    elseif pivotCombo == "BOTTOM_LEFT" then
+    elseif pivotPreset == "BOTTOM_LEFT" then
         return Point(0, h - 1)
-    elseif pivotCombo == "BOTTOM_CENTER" then
+    elseif pivotPreset == "BOTTOM_CENTER" then
         return Point(w // 2, h - 1)
-    elseif pivotCombo == "BOTTOM_RIGHT" then
+    elseif pivotPreset == "BOTTOM_RIGHT" then
         return Point(w - 1, h - 1)
     else
         return Point(w // 2, h // 2)
@@ -418,13 +438,6 @@ local wSet = 24
 local hSet = 24
 local pivotSet = "TOP_LEFT"
 
-local nudgeStep <const> = 1
-local displayMoveChecks <const> = true
-local wSliceMin <const> = 3
-local hSliceMin <const> = 3
-local enableCopyWarning <const> = false
-local useColorInvert <const> = true
-
 if app.preferences then
     local newFilePrefs <const> = app.preferences.new_file
     if newFilePrefs then
@@ -445,14 +458,23 @@ if app.preferences then
     end
 end
 
-local dlg <const> = Dialog { title = "Edit Slices" }
+local dlgMain <const> = Dialog {
+    title = "Edit Slices"
+}
 
-dlg:button {
+local dlgOptions <const> = Dialog {
+    title = "Slices Options",
+    parent = dlgMain
+}
+
+-- region Main Dialog
+
+dlgMain:button {
     id = "selectAllButton",
     text = "A&LL",
     label = "Select:",
-    focus = true,
-    visible = true,
+    focus = false,
+    visible = defaults.showSelectButtons,
     onclick = function()
         -- Aseprite UI already contains function for this, but slice context
         -- bar may not be visible.
@@ -491,11 +513,11 @@ dlg:button {
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "selectMaskButton",
     text = "&MASK",
     focus = false,
-    visible = true,
+    visible = defaults.showSelectButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -571,11 +593,11 @@ dlg:button {
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "deselectButton",
     text = "&NONE",
     focus = false,
-    visible = true,
+    visible = defaults.showSelectButtons,
     onclick = function()
         -- Aseprite UI already contains function for this, but slice context
         -- bar may not be visible.
@@ -602,35 +624,37 @@ dlg:button {
     end
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:button {
+dlgMain:button {
     id = "prevButton",
+    label = "Focus:",
     text = "&<",
     focus = false,
-    visible = true,
+    visible = defaults.showFocusButtons,
     onclick = function()
         changeActiveSlice(-1)
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "nextButton",
     text = "&>",
     focus = false,
-    visible = true,
+    visible = defaults.showFocusButtons,
     onclick = function()
         changeActiveSlice(1)
     end
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:button {
+dlgMain:button {
     id = "copyButton",
     label = "Edit:",
     text = "COP&Y",
     focus = false,
+    visible = defaults.showEditButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -644,7 +668,7 @@ dlg:button {
             return
         end
 
-        if enableCopyWarning then
+        if defaults.enableCopyWarning then
             local response <const> = app.alert {
                 title = "Warning",
                 text = {
@@ -776,7 +800,7 @@ dlg:button {
                             local bTrg = bSrc
                             local aTrg <const> = aSrc
 
-                            if useColorInvert then
+                            if defaults.useColorInvert then
                                 rTrg = 255 - rTrg
                                 gTrg = 255 - gTrg
                                 bTrg = 255 - bTrg
@@ -816,10 +840,11 @@ dlg:button {
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "deleteButton",
     text = "DELE&TE",
     focus = false,
+    visible = defaults.showEditButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -883,13 +908,14 @@ dlg:button {
     end
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:button {
+dlgMain:button {
     id = "fromFramesButton",
     label = "Convert:",
     text = "&FRAME",
     focus = false,
+    visible = defaults.showConvertButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -982,7 +1008,7 @@ dlg:button {
         local oldTool <const> = app.tool.id
         app.tool = "slice"
 
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local inset <const> = args.insetAmount --[[@as integer]]
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
         local newName <const> = args.nameEntry --[[@as string]]
@@ -1080,7 +1106,7 @@ dlg:button {
                         if xtlCelCl <= xbrCelCl and ytlCelCl <= ybrCelCl then
                             local wSlice <const> = 1 + xbrCelCl - xtlCelCl
                             local hSlice <const> = 1 + ybrCelCl - ytlCelCl
-                            if wSlice >= wSliceMin and hSlice >= hSliceMin then
+                            if wSlice >= defaults.wSliceMin and hSlice >= defaults.hSliceMin then
                                 local slice <const> = sprite:newSlice(Rectangle(
                                     xtlCelCl, ytlCelCl, wSlice, hSlice))
 
@@ -1118,10 +1144,11 @@ dlg:button {
     end
 }
 
-dlg:button {
-    id = "masktoSliceButton",
+dlgMain:button {
+    id = "maskToSliceButton",
     text = "MAS&K",
     focus = false,
+    visible = defaults.showConvertButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -1138,11 +1165,12 @@ dlg:button {
             local w <const> = math.max(1, math.abs(maskBounds.width))
             local h <const> = math.max(1, math.abs(maskBounds.height))
 
-            if w >= wSliceMin and h >= hSliceMin then
+            if w >= defaults.wSliceMin
+                and h >= defaults.hSliceMin then
                 local oldTool <const> = app.tool.id
                 app.tool = "slice"
 
-                local args <const> = dlg.data
+                local args <const> = dlgMain.data
                 local inset <const> = args.insetAmount --[[@as integer]]
                 local pivotCombo <const> = args.pivotCombo --[[@as string]]
                 local newName <const> = args.nameEntry --[[@as string]]
@@ -1217,10 +1245,11 @@ dlg:button {
     end
 }
 
-dlg:button {
-    id = "slicetoMaskButton",
+dlgMain:button {
+    id = "sliceToMaskButton",
     text = "SLIC&E",
     focus = false,
+    visible = defaults.showConvertButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -1277,126 +1306,136 @@ dlg:button {
     end
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:button {
+dlgMain:button {
     id = "moveUpButton",
     text = "&W",
     label = "Nudge:",
     focus = false,
+    visible = defaults.showNudgeButtons,
     onclick = function()
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local moveBounds <const> = args.moveBounds --[[@as boolean]]
         local movePivot <const> = args.movePivot --[[@as boolean]]
         local moveInset <const> = args.moveInset --[[@as boolean]]
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
         local insetAmount <const> = args.insetAmount --[[@as integer]]
-        translateSlices(0, -nudgeStep,
+        translateSlices(0, -defaults.nudgeStep,
             moveBounds, movePivot, moveInset,
             pivotCombo, insetAmount)
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "moveLeftButton",
     text = "&A",
     focus = false,
+    visible = defaults.showNudgeButtons,
     onclick = function()
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local moveBounds <const> = args.moveBounds --[[@as boolean]]
         local movePivot <const> = args.movePivot --[[@as boolean]]
         local moveInset <const> = args.moveInset --[[@as boolean]]
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
         local insetAmount <const> = args.insetAmount --[[@as integer]]
-        translateSlices(-nudgeStep, 0,
+        translateSlices(-defaults.nudgeStep, 0,
             moveBounds, movePivot, moveInset,
             pivotCombo, insetAmount)
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "moveDownButton",
     text = "&S",
     focus = false,
+    visible = defaults.showNudgeButtons,
     onclick = function()
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local moveBounds <const> = args.moveBounds --[[@as boolean]]
         local movePivot <const> = args.movePivot --[[@as boolean]]
         local moveInset <const> = args.moveInset --[[@as boolean]]
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
         local insetAmount <const> = args.insetAmount --[[@as integer]]
-        translateSlices(0, nudgeStep,
+        translateSlices(0, defaults.nudgeStep,
             moveBounds, movePivot, moveInset,
             pivotCombo, insetAmount)
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "moveRightButton",
     text = "&D",
     focus = false,
+    visible = defaults.showNudgeButtons,
     onclick = function()
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local moveBounds <const> = args.moveBounds --[[@as boolean]]
         local movePivot <const> = args.movePivot --[[@as boolean]]
         local moveInset <const> = args.moveInset --[[@as boolean]]
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
         local insetAmount <const> = args.insetAmount --[[@as integer]]
-        translateSlices(nudgeStep, 0,
+        translateSlices(defaults.nudgeStep, 0,
             moveBounds, movePivot, moveInset,
             pivotCombo, insetAmount)
     end
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:check {
+dlgMain:check {
     id = "moveBounds",
     text = "Bounds",
     selected = true,
     focus = false,
-    visible = displayMoveChecks
+    visible = defaults.showNudgeButtons
+        and defaults.showNudgeChecks
 }
 
-dlg:check {
+dlgMain:check {
     id = "movePivot",
     text = "Pivot",
     selected = false,
     focus = false,
-    visible = displayMoveChecks
+    visible = defaults.showNudgeButtons
+        and defaults.showNudgeChecks
 }
 
-dlg:check {
+dlgMain:check {
     id = "moveInset",
     text = "Inset",
     selected = false,
     focus = false,
-    visible = displayMoveChecks
+    visible = defaults.showNudgeButtons
+        and defaults.showNudgeChecks
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:number {
+dlgMain:number {
     id = "width",
     -- label = "Pixels:",
     label = "Size:",
     text = string.format("%d", wSet),
     decimals = 0,
-    visible = true
+    visible = defaults.showSizeButtons,
+    focus = false,
 }
 
-dlg:number {
+dlgMain:number {
     id = "height",
     text = string.format("%d", hSet),
     decimals = 0,
-    visible = true
+    visible = defaults.showSizeButtons,
+    focus = false,
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:button {
+dlgMain:button {
     id = "resizeButton",
     text = "RESI&ZE",
+    visible = defaults.showSizeButtons,
     focus = false,
     onclick = function()
         local sprite <const> = app.sprite
@@ -1422,14 +1461,16 @@ dlg:button {
             return
         end
 
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local width <const> = args.width --[[@as integer]]
         local height <const> = args.height --[[@as integer]]
 
         local wSprite <const> = sprite.width
         local hSprite <const> = sprite.height
-        local wVerif <const> = math.max(wSliceMin, math.abs(width))
-        local hVerif <const> = math.max(hSliceMin, math.abs(height))
+        local wVerif <const> = math.max(
+            defaults.wSliceMin, math.abs(width))
+        local hVerif <const> = math.max(
+            defaults.hSliceMin, math.abs(height))
 
         local actFrObj <const> = app.frame or sprite.frames[1]
         app.frame = sprite.frames[1]
@@ -1522,31 +1563,35 @@ dlg:button {
     end
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:number {
+dlgMain:number {
     id = "insetAmount",
     label = "Amount:",
     text = string.format("%d", 0),
     decimals = 0,
-    focus = false
+    focus = false,
+    visible = defaults.showInsetButtons
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:combobox {
+dlgMain:combobox {
     id = "pivotCombo",
     label = "Preset:",
     option = pivotSet,
-    options = pivotOptions
+    options = pivotOptions,
+    focus = false,
+    visible = defaults.showPivotButtons
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:button {
+dlgMain:button {
     id = "insetButton",
     text = "&INSET",
     focus = false,
+    visible = defaults.showInsetButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -1571,7 +1616,7 @@ dlg:button {
             return
         end
 
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local inset <const> = args.insetAmount --[[@as integer]]
         local insVerif = math.abs(inset)
 
@@ -1613,10 +1658,11 @@ dlg:button {
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "setPivotButton",
     text = "PI&VOT",
     focus = false,
+    visible = defaults.showPivotButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -1641,7 +1687,7 @@ dlg:button {
             return
         end
 
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local pivotCombo <const> = args.pivotCombo --[[@as string]]
 
         local abs <const> = math.abs
@@ -1778,34 +1824,40 @@ dlg:button {
     end
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:entry {
+dlgMain:entry {
     id = "nameEntry",
     label = "Name:",
+    text = "Slice",
     focus = false,
-    text = "Slice"
+    visible = defaults.showRenameButtons
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:color {
+dlgMain:color {
     id = "origColor",
     label = "Mix:",
-    color = Color { r = 254, g = 91, b = 89, a = 255 }
+    color = Color { r = 254, g = 91, b = 89, a = 255 },
+    focus = false,
+    visible = defaults.showRecolorButtons
 }
 
-dlg:color {
+dlgMain:color {
     id = "destColor",
-    color = Color { r = 106, g = 205, b = 91, a = 255 }
+    color = Color { r = 106, g = 205, b = 91, a = 255 },
+    focus = false,
+    visible = defaults.showRecolorButtons
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:button {
+dlgMain:button {
     id = "renameButton",
     text = "&RENAME",
     focus = false,
+    visible = defaults.showRenameButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -1834,7 +1886,7 @@ dlg:button {
             return
         end
 
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local newName <const> = args.nameEntry --[[@as string]]
 
         local newNameVrf = "Slice"
@@ -1882,10 +1934,11 @@ dlg:button {
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "tintButton",
     text = "C&OLOR",
     focus = false,
+    visible = defaults.showRecolorButtons,
     onclick = function()
         local sprite <const> = app.sprite
         if not sprite then return end
@@ -1910,7 +1963,7 @@ dlg:button {
             return
         end
 
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
         local origColor <const> = args.origColor --[[@as Color]]
         local destColor <const> = args.destColor --[[@as Color]]
 
@@ -2016,13 +2069,13 @@ dlg:button {
     end
 }
 
-dlg:button {
+dlgMain:button {
     id = "swapColorsButton",
     text = "SWA&P",
     focus = false,
-    visible = true,
+    visible = defaults.showRecolorButtons,
     onclick = function()
-        local args <const> = dlg.data
+        local args <const> = dlgMain.data
 
         local origColor <const> = args.origColor --[[@as Color]]
         local rOrig <const> = math.min(math.max(origColor.red, 0), 255)
@@ -2036,12 +2089,12 @@ dlg:button {
         local bDest <const> = math.min(math.max(destColor.blue, 0), 255)
         local aDest <const> = math.min(math.max(destColor.alpha, 0), 255)
 
-        dlg:modify {
+        dlgMain:modify {
             id = "origColor",
             color = Color { r = rDest, g = gDest, b = bDest, a = aDest }
         }
 
-        dlg:modify {
+        dlgMain:modify {
             id = "destColor",
             color = Color { r = rOrig, g = gOrig, b = bOrig, a = aOrig }
         }
@@ -2050,18 +2103,195 @@ dlg:button {
     end
 }
 
-dlg:newrow { always = false }
+dlgMain:newrow { always = false }
 
-dlg:button {
-    id = "cancel",
-    text = "&CANCEL",
-    focus = false,
+dlgMain:button {
+    id = "optionsButton",
+    text = "OPTIONS",
+    focus = true,
+    visible = true,
     onclick = function()
-        dlg:close()
+        dlgOptions:show { autoscrollbars = true, wait = true }
     end
 }
 
-dlg:show {
+dlgMain:button {
+    id = "exitMainButton",
+    text = "&CANCEL",
+    focus = false,
+    onclick = function()
+        dlgMain:close()
+    end
+}
+
+-- endregion
+
+-- region Options Menu
+
+dlgOptions:check {
+    id = "showSelectButtons",
+    label = "Show:",
+    text = "Select",
+    selected = defaults.showSelectButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showSelectButtons --[[@as boolean]]
+        dlgMain:modify { id = "selectAllButton", visible = state }
+        dlgMain:modify { id = "selectMaskButton", visible = state }
+        dlgMain:modify { id = "deselectButton", visible = state }
+    end
+}
+
+dlgOptions:check {
+    id = "showFocusButtons",
+    text = "Focus",
+    selected = defaults.showFocusButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showFocusButtons --[[@as boolean]]
+        dlgMain:modify { id = "prevButton", visible = state }
+        dlgMain:modify { id = "nextButton", visible = state }
+    end
+}
+
+dlgOptions:check {
+    id = "showEditButtons",
+    text = "Edit",
+    selected = defaults.showEditButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showEditButtons --[[@as boolean]]
+        dlgMain:modify { id = "copyButton", visible = state }
+        dlgMain:modify { id = "deleteButton", visible = state }
+    end
+}
+
+dlgOptions:newrow { always = false }
+
+dlgOptions:check {
+    id = "showConvertButtons",
+    text = "Convert",
+    selected = defaults.showConvertButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showConvertButtons --[[@as boolean]]
+        dlgMain:modify { id = "fromFramesButton", visible = state }
+        dlgMain:modify { id = "maskToSliceButton", visible = state }
+        dlgMain:modify { id = "sliceToMaskButton", visible = state }
+    end
+}
+
+dlgOptions:check {
+    id = "showNudgeButtons",
+    text = "Nudge",
+    selected = defaults.showNudgeButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showNudgeButtons --[[@as boolean]]
+        dlgMain:modify { id = "moveUpButton", visible = state }
+        dlgMain:modify { id = "moveLeftButton", visible = state }
+        dlgMain:modify { id = "moveDownButton", visible = state }
+        dlgMain:modify { id = "moveRightButton", visible = state }
+
+        local showChecks <const> = defaults.showNudgeChecks
+            and state
+        dlgMain:modify { id = "moveBounds", visible = showChecks }
+        dlgMain:modify { id = "movePivot", visible = showChecks }
+        dlgMain:modify { id = "moveInset", visible = showChecks }
+    end
+}
+
+dlgOptions:check {
+    id = "showSizeButtons",
+    text = "Size",
+    selected = defaults.showSizeButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showSizeButtons --[[@as boolean]]
+        dlgMain:modify { id = "width", visible = state }
+        dlgMain:modify { id = "height", visible = state }
+        dlgMain:modify { id = "resizeButton", visible = state }
+    end
+}
+
+dlgOptions:newrow { always = false }
+
+dlgOptions:check {
+    id = "showInsetButtons",
+    text = "Inset",
+    selected = defaults.showInsetButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showInsetButtons --[[@as boolean]]
+        dlgMain:modify { id = "insetAmount", visible = state }
+        dlgMain:modify { id = "insetButton", visible = state }
+    end
+}
+
+dlgOptions:check {
+    id = "showPivotButtons",
+    text = "Pivot",
+    selected = defaults.showPivotButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showPivotButtons --[[@as boolean]]
+        dlgMain:modify { id = "pivotCombo", visible = state }
+        dlgMain:modify { id = "setPivotButton", visible = state }
+    end
+}
+
+dlgOptions:newrow { always = false }
+
+dlgOptions:check {
+    id = "showRenameButtons",
+    text = "Name",
+    selected = defaults.showRenameButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showRenameButtons --[[@as boolean]]
+        dlgMain:modify { id = "nameEntry", visible = state }
+        dlgMain:modify { id = "renameButton", visible = state }
+    end
+}
+
+dlgOptions:check {
+    id = "showRecolorButtons",
+    text = "Color",
+    selected = defaults.showRecolorButtons,
+    focus = false,
+    onclick = function()
+        local args <const> = dlgOptions.data
+        local state <const> = args.showRecolorButtons --[[@as boolean]]
+        dlgMain:modify { id = "origColor", visible = state }
+        dlgMain:modify { id = "destColor", visible = state }
+        dlgMain:modify { id = "tintButton", visible = state }
+        dlgMain:modify { id = "swapColorsButton", visible = state }
+    end
+}
+
+dlgOptions:newrow { always = false }
+
+dlgOptions:button {
+    id = "exitOptionsButton",
+    text = "CLOSE",
+    focus = true,
+    onclick = function()
+        dlgOptions:close()
+    end
+}
+
+-- endregion
+
+dlgMain:show {
     autoscrollbars = true,
     wait = false
 }
